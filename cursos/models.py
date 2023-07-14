@@ -1,12 +1,8 @@
 from django.db import models
 from usuarios.models import Usuario
-from django.core.exceptions import ValidationError
+from validators import validate_pdf_file
 import os
 
-def validate_pdf_file(value):
-    ext = os.path.splitext(value.name)[1]
-    if ext.lower() != '.pdf':
-        raise ValidationError('Este campo aceita apenas arquivos PDF.')
 
 class Curso(models.Model):
     nome = models.CharField(max_length=255)
@@ -19,17 +15,5 @@ class Curso(models.Model):
     mural_eq = models.TextField(blank=True)
     capa = models.FileField(upload_to='capas/', blank=True, validators=[validate_pdf_file])
     usuario_capa = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, related_name='cursos_capa')
+    membros = models.ManyToManyField(Usuario, related_name='cursos_membros')
 
-
-
-class Equipe(models.Model):
-    curso = models.ForeignKey(Curso, on_delete=models.CASCADE)
-    membros = models.ManyToManyField(Usuario)
-
-
-class Relatorio(models.Model):
-    curso = models.ForeignKey(Curso, on_delete=models.CASCADE)
-    indicador = models.ForeignKey('indicadores.IndicadorMan', on_delete=models.CASCADE)
-    data_envio = models.DateTimeField(auto_now_add=True)
-    conteudo = models.FileField(upload_to='relatorios/', validators=[validate_pdf_file])
-    usuario_relatorio = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, related_name='relatorios')
