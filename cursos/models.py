@@ -16,4 +16,5 @@ class Curso(models.Model):
     capa = models.FileField(upload_to='capas/', blank=True, validators=[validate_pdf_file])
     usuario_capa = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, related_name='cursos_capa')
     membros = models.ManyToManyField(Usuario, related_name='cursos_membros')
+    avaliadores = models.ManyToManyField(Usuario, related_name='avaliadores')
 
