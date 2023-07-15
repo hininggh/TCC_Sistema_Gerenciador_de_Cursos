@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>Detalhes do Usuário</h2>
+  <p>Nome: {{ usuario.nome }}</p>
+  <p>Email: {{ usuario.email }}</p>
+  <p>Telefone: {{ usuario.telefone }}</p>
+  {% if cursos %}
+    <h3>Cursos em Comum</h3>
+    <ul>
+      {% for curso in cursos %}
+        <li>{{ curso.nome }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  {% if usuario == request.user %}
+    <a href="{% url 'editar_perfil' %}">Editar Perfil</a>
+  {% endif %}
+{% endblock %}
