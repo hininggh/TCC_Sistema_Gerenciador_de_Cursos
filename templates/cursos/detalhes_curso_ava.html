@@ -1,10 +1,62 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<style>
+  .minimizable {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+  .minimizable h2 {
+    margin-top: 0;
+    cursor: pointer;
+  }
+  .minimizable-content {
+    margin-top: 10px;
+  }
+</style>
 
-</body>
-</html>
+<h1>{{ curso.nome }}</h1>
+<p>Inscrição Curricular: {{ curso.inscricao_curricular }}</p>
+<p>Descrição: {{ curso.descricao }}</p>
+<p>Gerenciador: {{ curso.gerenciador.nome }}</p>
+
+<h2>Capa do Curso</h2>
+{% if curso.capa %}
+    <p><a href="{{ curso.capa.url }}">Baixar</a></p>
+{% endif %}
+
+<h2>Indicadores</h2>
+{% for dimensao, indicadores_man in indicadores_por_dimensao.items %}
+    <div class="minimizable">
+        <h3>{{ dimensao }}</h3>
+        <div class="minimizable-content">
+            <ul>
+                {% for indicador_man in indicadores_man %}
+                    <li>
+                        {{ indicador_man.indicador_info.nome }}
+                        - NSA: {{ indicador_man.nsa }}
+                        {% if indicador_man.conteudo %}
+                            - <a href="{{ indicador_man.conteudo.url }}">Baixar</a>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+{% endfor %}
+
+<div class="minimizable">
+    <h2>Informações Complementares</h2>
+    <div class="minimizable-content">
+        <p>{{ curso.informacoes_complementares }}</p>
+    </div>
+</div>
+
+<script>
+  const minimizables = document.querySelectorAll('.minimizable');
+  for (const minimizable of minimizables) {
+    const title = minimizable.querySelector('h2, h3');
+    const content = minimizable.querySelector('.minimizable-content');
+    title.addEventListener('click', () => {
+      content.style.display = content.style.display === 'none' ? '' : 'none';
+    });
+  }
+</script>

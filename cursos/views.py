@@ -5,6 +5,9 @@ from .forms import CursoForm
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from indicadores.models import IndicadorMan, IndicadorInfo
+
+
+
 def listar_relatores(request):
     relatores = Usuario.objects.filter(tipo_usuario=Usuario.RELATOR)
     return render(request, 'cursos/listar_relatores.html', {'relatores': relatores})
@@ -70,3 +73,35 @@ def detalhes_curso_gen(request, curso_id):
         'indicadores_por_dimensao': indicadores_por_dimensao,
     }
     return render(request, 'cursos/detalhes_curso_gen.html', context)
+
+def detalhes_curso_relator(request, curso_id):
+    curso = get_object_or_404(Curso, pk=curso_id)
+    relatores = curso.membros.filter(tipo_usuario=Usuario.RELATOR)
+    indicadores_man = IndicadorMan.objects.filter(curso=curso).select_related('indicador_info')
+    indicadores_por_dimensao = {}
+    for indicador_man in indicadores_man:
+        dimensao = indicador_man.indicador_info.get_dimensao_display()
+        if dimensao not in indicadores_por_dimensao:
+            indicadores_por_dimensao[dimensao] = []
+        indicadores_por_dimensao[dimensao].append(indicador_man)
+    context = {
+        'curso': curso,
+        'relatores': relatores,
+        'indicadores_por_dimensao': indicadores_por_dimensao,
+    }
+    return render(request, 'cursos/detalhes_curso_relator.html', context)
+
+def detalhes_curso_ava(request, curso_id):
+    curso = get_object_or_404(Curso, pk=curso_id)
+    indicadores_man = IndicadorMan.objects.filter(curso=curso).select_related('indicador_info')
+    indicadores_por_dimensao = {}
+    for indicador_man in indicadores_man:
+        dimensao = indicador_man.indicador_info.get_dimensao_display()
+        if dimensao not in indicadores_por_dimensao:
+            indicadores_por_dimensao[dimensao] = []
+        indicadores_por_dimensao[dimensao].append(indicador_man)
+    context = {
+        'curso': curso,
+        'indicadores_por_dimensao': indicadores_por_dimensao,
+    }
+    return render(request, 'cursos/detalhes_curso_ava.html', context)
