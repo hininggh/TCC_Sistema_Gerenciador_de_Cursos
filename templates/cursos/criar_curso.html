@@ -1,10 +1,83 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<h1>{% if curso.id %}Editar{% else %}Criar{% endif %} Curso</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <label for="relator-input">Relatores:</label>
+    <div id="relatores-selecionados"></div>
+    <input type="text" id="relator-input" placeholder="Buscar relator">
+    <div id="relatores-container" style="display: none;">
+        <ul id="relatores-lista" style="max-height: 200px; overflow-y: auto;"></ul>
+    </div>
+    <input type="submit" value="Salvar">
+</form>
 
-</body>
-</html>
+{% if curso.id %}
+    <form method="post" action="{% url 'excluir_curso' curso.id %}">
+        {% csrf_token %}
+        <input type="submit" value="Excluir">
+    </form>
+{% endif %}
+
+<script>
+  const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  const relatorInput = document.querySelector('#relator-input');
+  const relatoresContainer = document.querySelector('#relatores-container');
+  const relatoresLista = document.querySelector('#relatores-lista');
+  const relatoresSelecionados = document.querySelector('#relatores-selecionados');
+
+  function adicionarRelator(relator) {
+    const span = document.createElement('span');
+    span.textContent = relator.nome;
+    span.style.marginRight = '10px';
+    relatoresSelecionados.appendChild(span);
+
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'relatores';
+    input.value = relator.id;
+    relatoresSelecionados.appendChild(input);
+  }
+
+  function buscarRelatores() {
+    fetch('{% url 'buscar_relatores' %}?q=' + encodeURIComponent(relatorInput.value), {
+      headers: {
+        'X-CSRFToken': csrftoken,
+      },
+    })
+      .then(response => response.json())
+      .then(relatores => {
+        relatoresLista.innerHTML = '';
+        for (const relator of relatores) {
+          const li = document.createElement('li');
+          li.textContent = relator.nome;
+          li.style.cursor = 'pointer';
+          li.addEventListener('click', () => {
+            adicionarRelator(relator);
+            li.remove();
+          });
+          relatoresLista.appendChild(li);
+        }
+      });
+  }
+
+  let timeoutId = null;
+  relatorInput.addEventListener('input', () => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(buscarRelatores, 500);
+  });
+
+  relatorInput.addEventListener('focus', () => {
+    relatoresContainer.style.display = '';
+    buscarRelatores();
+  });
+
+  document.body.addEventListener('click', event => {
+    if (!relatoresContainer.contains(event.target) && event.target !== relatorInput) {
+      relatoresContainer.style.display = 'none';
+    }
+  });
+
+  {% for relator in curso.membros.all %}
+    adicionarRelator({id: '{{ relator.id }}', nome: '{{ relator.nome }}'});
+  {% endfor %}
+</script>

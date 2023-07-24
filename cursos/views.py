@@ -5,7 +5,7 @@ from .forms import CursoForm
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from indicadores.models import IndicadorMan, IndicadorInfo
-
+from django.urls import reverse
 
 
 def listar_relatores(request):
@@ -13,23 +13,52 @@ def listar_relatores(request):
     return render(request, 'cursos/listar_relatores.html', {'relatores': relatores})
 
 
-def criar_curso(request):
+def criar_curso(request, curso_id=None):
+    if curso_id:
+        curso = get_object_or_404(Curso, pk=curso_id)
+    else:
+        curso = Curso(gerenciador=request.user)
+
     if request.method == 'POST':
-        form = CursoForm(request.POST)
+        form = CursoForm(request.POST, instance=curso)
         if form.is_valid():
-            curso = form.save(commit=False)
-            curso.gerenciador = request.user
-            curso.save()
-            relatores_ids = form.cleaned_data['relatores'].split(',')
+            curso = form.save()
+            relatores_ids = request.POST.getlist('relatores')
             relatores = Usuario.objects.filter(id__in=relatores_ids)
             curso.membros.set(relatores)
-            indicadores_info = IndicadorInfo.objects.all()
-            for indicador_info in indicadores_info:
-                IndicadorMan.objects.create(curso=curso, indicador_info=indicador_info)
+            if not curso_id:
+                indicadores_info = IndicadorInfo.objects.all()
+                for indicador_info in indicadores_info:
+                    IndicadorMan.objects.create(curso=curso, indicador_info=indicador_info)
             return redirect('detalhes_curso_gen', curso_id=curso.id)
     else:
-        form = CursoForm()
-    return render(request, 'cursos/criar_curso.html', {'form': form})
+        form = CursoForm(instance=curso)
+    return render(request, 'cursos/criar_curso.html', {'form': form, 'curso': curso})
+
+
+def excluir_curso(request, curso_id):
+    if request.method == 'POST':
+        curso = get_object_or_404(Curso, pk=curso_id)
+        indicadores_man = IndicadorMan.objects.filter(curso=curso)
+        for indicador_man in indicadores_man:
+            if indicador_man.conteudo:
+                indicador_man.conteudo.delete()
+            indicador_man.delete()
+        if curso.capa:
+            curso.capa.delete()
+        curso.delete()
+        return redirect('home')
+    else:
+        return redirect('criar_curso', curso_id=curso_id)
+
+def buscar_relatores(request):
+    q = request.GET.get('q', '')
+    relatores = Usuario.objects.filter(tipo_usuario=Usuario.RELATOR)
+    if q:
+        relatores = relatores.filter(nome__icontains=q)
+    data = [{'id': relator.id, 'nome': relator.nome} for relator in relatores]
+    return JsonResponse(data, safe=False)
+
 
 @require_POST
 def atualizar_mural_gen(request, curso_id):
