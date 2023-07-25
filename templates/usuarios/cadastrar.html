@@ -1,10 +1,75 @@
-{% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
-  <h2>Cadastrar</h2>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Cadastrar</button>
-  </form>
+    <style>
+        body {
+            background-image: url("{% static 'images/fundologin.jpg' %}");
+        }
+        .paglogin-form-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .paglogin-form-box {
+            background: linear-gradient(to top right, white, lightgray);
+            padding: 20px;
+            border-radius: 20px;
+            max-height: 100vh;
+            overflow-y: auto;
+        }
+
+        .paglogin-form-box label,
+        .paglogin-form-box input,
+        .paglogin-form-box button {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .paglogin-form-box label {
+            color: black;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .paglogin-form-box input,
+        .paglogin-form-box button {
+            border-radius: 10px;
+        }
+
+        .paglogin-form-box button {
+            background: linear-gradient(to right, #1e3d59, #3a506b);
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .paglogin-form-box select {
+            display: block;
+            margin: 0 auto;
+        }
+
+    </style>
+    <link rel="stylesheet" href="{% static 'css/estilo.css' %}">
+    <div class="paglogin-form-container">
+        <div class="paglogin-form-box">
+            <h1>Cadastrar</h1>
+            <form method="post" action="{% url 'usuarios:register' %}">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit">Cadastrar</button>
+            </form>
+        </div>
+    </div>
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li>{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
 {% endblock %}

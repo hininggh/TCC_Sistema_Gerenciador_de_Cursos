@@ -1,14 +1,12 @@
-<h1>Relatores</h1>
-<ul>
-    {% for relator in relatores %}
-        <li>{{ relator.nome }}</li>
-    {% endfor %}
-</ul>
+{% extends 'base.html' %}
+{% load static %}
 
-<!-- listar_cursos.html -->
-<h1>Cursos que Gerencio</h1>
-<ul>
-    {% for curso in cursos %}
-        <li>{{ curso.nome }}</li>
-    {% endfor %}
-</ul>
+{% block content %}
+    <h1>Relatores</h1>
+    <ul>
+        {% for relator in relatores %}
+            <li>{{ relator.nome }}</li>
+        {% endfor %}
+    </ul>
+{% endblock %}
+

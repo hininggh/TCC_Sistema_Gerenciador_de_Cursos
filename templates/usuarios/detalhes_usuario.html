@@ -14,6 +14,6 @@
     </ul>
   {% endif %}
   {% if usuario == request.user %}
-    <a href="{% url 'editar_perfil' %}">Editar Perfil</a>
+    <a href="{% url 'usuarios:editar_perfil' %}">Editar Perfil</a>
   {% endif %}
 {% endblock %}

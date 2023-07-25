@@ -28,11 +28,11 @@
 </head>
 <body>
     <div class="navbar">
-        <a href="{% url 'home' %}">Home</a>
-        <a href="{% url 'detalhes_usuario' %}">Perfil</a>
+        <a href="{% url 'usuarios:home' %}">Home</a>
+        <a href="{% url 'usuarios:detalhes_usuario' %}">Perfil</a>
         <div class="navbar-right">
             <span style="float:left; padding: 14px 16px; color:white;">Bem-vindo, {{ user.nome }}!!</span>
-            <a href="{% url 'logout' %}" style="font-size: 0.9em;">Sair</a>
+            <a href="{% url 'usuarios:logout' %}" style="font-size: 0.9em;">Sair</a>
         </div>
     </div>
 

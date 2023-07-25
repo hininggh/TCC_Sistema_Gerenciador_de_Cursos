@@ -12,7 +12,7 @@
 </form>
 
 {% if curso.id %}
-    <form method="post" action="{% url 'excluir_curso' curso.id %}">
+    <form method="post" action="{% url 'cursos:excluir_curso' curso.id %}">
         {% csrf_token %}
         <input type="submit" value="Excluir">
     </form>
@@ -39,7 +39,7 @@
   }
 
   function buscarRelatores() {
-    fetch('{% url 'buscar_relatores' %}?q=' + encodeURIComponent(relatorInput.value), {
+    fetch('{% url 'cursos:buscar_relatores' %}?q=' + encodeURIComponent(relatorInput.value), {
       headers: {
         'X-CSRFToken': csrftoken,
       },
@@ -77,7 +77,9 @@
     }
   });
 
-  {% for relator in curso.membros.all %}
-    adicionarRelator({id: '{{ relator.id }}', nome: '{{ relator.nome }}'});
-  {% endfor %}
+  {% if curso.id %}
+    {% for relator in curso.membros.all %}
+        adicionarRelator({id: '{{ relator.id }}', nome: '{{ relator.nome }}'});
+    {% endfor %}
+  {% endif %}
 </script>

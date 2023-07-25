@@ -55,10 +55,10 @@
             <ul>
                 {% for indicador_man in indicadores_man %}
                     <li>
-                        <a href="{% url 'indicador_detalhes' indicador_man.id %}" title="{{ indicador_man.indicador_info.mensagem_aviso }}">{{ indicador_man.indicador_info.nome }}</a>
+                        <a href="{% url 'indicadores:indicador_detalhes' indicador_man.id %}" title="{{ indicador_man.indicador_info.mensagem_aviso }}">{{ indicador_man.indicador_info.nome }}</a>
                         - NSA: {{ indicador_man.nsa }}
                         - Data de Envio: {{ indicador_man.data_envio }}
-                        - Quem Enviou: <a href="{% url 'detalhes_usuario' indicador_man.usuario_relatorio.id %}">{{ indicador_man.usuario_relatorio.nome }}</a>
+                        - Quem Enviou: <a href="{% url 'usuarios:detalhes_usuario' indicador_man.usuario_relatorio.id %}">{{ indicador_man.usuario_relatorio.nome }}</a>
                     </li>
                 {% endfor %}
             </ul>

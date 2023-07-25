@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <h1>Bem-vindo, {{ user.nome }}</h1>
+    <h2>Cursos:</h2>
+    <ul>
+        {% for curso in cursos %}
+            <li><a href="{% url 'cursos:detalhes_curso_gen' curso.id %}">{{ curso.nome }}</a></li>
+        {% endfor %}
+    </ul>
+{% endblock %}

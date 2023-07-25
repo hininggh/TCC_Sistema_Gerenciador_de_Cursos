@@ -16,27 +16,26 @@
 <h1>{{ curso.nome }}</h1>
 <p>Inscrição Curricular: {{ curso.inscricao_curricular }}</p>
 <p>Descrição: {{ curso.descricao }}</p>
-<p><a href="{% url 'editar_curso' curso.id %}">Editar Curso</a></p>
+<p><a href="{% url 'cursos:editar_curso' curso.id %}">Editar Curso</a></p>
 
 <h2>Capa do Curso</h2>
 {% if curso.capa %}
     <p><a href="{{ curso.capa.url }}">Baixar</a></p>
-    <form action="{% url 'apagar_capa' curso.id %}" method="post">
+    <form action="{% url 'cursos:apagar_capa' curso.id %}" method="post" onsubmit="return confirm('Tem certeza de que deseja apagar esta capa?')">
         {% csrf_token %}
         <input type="submit" value="Apagar">
     </form>
-{% else %}
-    <form action="{% url 'enviar_capa' curso.id %}" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <input type="file" name="capa" accept=".pdf">
-        <input type="submit" value="Enviar">
-    </form>
 {% endif %}
+<form method="post" enctype="multipart/form-data" onsubmit="return confirm('Tem certeza de que deseja enviar esta capa? Isso substituirá permanentemente a capa existente.')">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="{% if curso.capa %}Substituir{% else %}Enviar{% endif %}">
+</form>
 
 <h2>Relatores</h2>
 <ul>
     {% for relator in relatores %}
-        <li><a href="{% url 'detalhes_usuario' relator.id %}">{{ relator.nome }}</a></li>
+        <li><a href="{% url 'usuarios:detalhes_usuario' relator.id %}">{{ relator.nome }}</a></li>
     {% endfor %}
 </ul>
 
@@ -70,10 +69,10 @@
             <ul>
                 {% for indicador_man in indicadores_man %}
                     <li>
-                        <a href="{% url 'indicador_detalhes' indicador_man.id %}" title="{{ indicador_man.indicador_info.mensagem_aviso }}">{{ indicador_man.indicador_info.nome }}</a>
+                        <a href="{% url 'indicadores:indicador_detalhes' indicador_man.id %}" title="{{ indicador_man.indicador_info.mensagem_aviso }}">{{ indicador_man.indicador_info.nome }}</a>
                         - NSA: {{ indicador_man.nsa }}
                         - Data de Envio: {{ indicador_man.data_envio }}
-                        - Quem Enviou: <a href="{% url 'detalhes_usuario' indicador_man.usuario_relatorio.id %}">{{ indicador_man.usuario_relatorio.nome }}</a>
+                        - Quem Enviou: <a href="{% url 'usuarios:detalhes_usuario' indicador_man.usuario_relatorio.id %}">{{ indicador_man.usuario_relatorio.nome }}</a>
                     </li>
                 {% endfor %}
             </ul>

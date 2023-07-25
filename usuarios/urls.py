@@ -1,13 +1,16 @@
+app_name = 'usuarios'
+
 from django.urls import path
-from django.contrib.auth.views import LoginView
 from .views import register, edit_user, detalhes_usuario
 from .views import listar_relatores
 from .views import MyLoginView
 from django.contrib.auth.views import LogoutView
+from usuarios import views as usuarios_views
 
 urlpatterns = [
-    path('login/', LoginView.as_view(template_name='usuarios/login.html'), name='login'),
+    path('', usuarios_views.login_view, name='login'),
     path('login/', MyLoginView.as_view(), name='login'),
+    path('home/', usuarios_views.home, name='home'),
     path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
     path('cadastrar/', register, name='register'),
     path('editar_perfil/', edit_user, name='edit_user'),

@@ -5,8 +5,7 @@ from .forms import CursoForm
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from indicadores.models import IndicadorMan, IndicadorInfo
-
-
+from .forms import CapaForm
 
 
 def criar_curso(request, curso_id=None):
@@ -92,12 +91,30 @@ def detalhes_curso_gen(request, curso_id):
         if dimensao not in indicadores_por_dimensao:
             indicadores_por_dimensao[dimensao] = []
         indicadores_por_dimensao[dimensao].append(indicador_man)
+    if request.method == 'POST':
+        form = CapaForm(request.POST, request.FILES)
+        if form.is_valid():
+            curso.capa = form.cleaned_data['capa']
+            curso.usuario_capa = request.user
+            curso.save()
+            return redirect('detalhes_curso_gen', curso_id=curso.id)
+    else:
+        form = CapaForm()
     context = {
         'curso': curso,
         'relatores': relatores,
         'indicadores_por_dimensao': indicadores_por_dimensao,
+        'form': form,
     }
     return render(request, 'cursos/detalhes_curso_gen.html', context)
+
+
+def apagar_capa(request, curso_id):
+    curso = get_object_or_404(Curso, pk=curso_id)
+    curso.capa.delete()
+    curso.usuario_capa = None
+    curso.save()
+    return redirect('detalhes_curso', curso_id=curso.id)
 
 def detalhes_curso_relator(request, curso_id):
     curso = get_object_or_404(Curso, pk=curso_id)

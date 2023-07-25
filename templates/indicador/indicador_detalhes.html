@@ -16,7 +16,7 @@
 <h2>Relatório</h2>
 {% if indicadorman.conteudo %}
     <p><a href="{{ indicadorman.conteudo.url }}">Baixar</a></p>
-    <form action="{% url 'apagar_conteudo' indicadorman.id %}" method="post" onsubmit="return confirm('Tem certeza de que deseja apagar este conteúdo?')">
+    <form action="{% url 'indicadores:apagar_conteudo' indicadorman.id %}" method="post" onsubmit="return confirm('Tem certeza de que deseja apagar este conteúdo?')">
         {% csrf_token %}
         <input type="submit" value="Apagar">
     </form>
@@ -30,4 +30,4 @@
 <p>Data de Envio: {{ indicadorman.data_envio }}</p>
 <p>Quem Enviou: <a href="{% url 'detalhes_usuario' indicadorman.usuario_relatorio.id %}">{{ indicadorman.usuario_relatorio.nome }}</a></p>
 
-<a href="{% url 'detalhes_curso_gen' indicadorman.curso.id %}">Voltar</a>
+<a href="{% url 'cursos:detalhes_curso_gen' indicadorman.curso.id %}">Voltar</a>
