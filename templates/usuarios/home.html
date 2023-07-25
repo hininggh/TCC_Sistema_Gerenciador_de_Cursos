@@ -1,10 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-
-</body>
-</html>
+{% if user.tipo_usuario == 'GERENCIADOR' %}
+    <h1>Bem-vindo, {{ user.nome }}</h1>
+    <p>Você é um gerenciador.</p>
+    <ul>
+        <li><a href="{% url 'listar_relatores' %}">Listar Relatores</a></li>
+        <li><a href="{% url 'listar_cursos' %}">Listar Cursos que Gerencio</a></li>
+        <li><a href="{% url 'criar_curso' %}">Criar Curso</a></li>
+    </ul>
+{% elif user.tipo_usuario == 'RELATOR' %}
+    <h1>Bem-vindo, {{ user.nome }}</h1>
+    <p>Você é um relator.</p>
+    <h2>Cursos onde sou membro:</h2>
+    <ul>
+        {% for curso in cursos %}
+            <li><a href="{% url 'detalhes_curso_relator' curso.id %}">{{ curso.nome }}</a></li>
+        {% endfor %}
+    </ul>
+{% elif user.tipo_usuario == 'AVALIADOR' %}
+    <h1>Bem-vindo, {{ user.nome }}</h1>
+    <p>Você é um avaliador.</p>
+    <h2>Cursos onde sou avaliador:</h2>
+    <ul>
+        {% for curso in cursos %}
+            <li><a href="{% url 'detalhes_curso_ava' curso.id %}">{{ curso.nome }}</a></li>
+        {% endfor %}
+    </ul>
+{% endif %}

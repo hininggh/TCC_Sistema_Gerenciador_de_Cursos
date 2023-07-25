@@ -3,15 +3,36 @@ from django.contrib.auth.decorators import login_required
 from .forms import UsuarioCreationForm, UsuarioChangeForm
 from .models import Usuario
 from cursos.models import Curso
+from django.contrib.auth.views import LoginView
+from django.urls import reverse
+
 def register(request):
     if request.method == 'POST':
         form = UsuarioCreationForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('login')
+            return redirect('home')
     else:
         form = UsuarioCreationForm()
     return render(request, 'usuarios/cadastrar.html', {'form': form})
+
+class MyLoginView(LoginView):
+    template_name = 'usuarios/login.html'
+
+    def get_success_url(self):
+        return reverse('home')
+
+
+
+def home(request):
+    if request.user.tipo_usuario == Usuario.RELATOR:
+        cursos = Curso.objects.filter(membros=request.user)
+        return render(request, 'cursos/home.html', {'cursos': cursos})
+    elif request.user.tipo_usuario == Usuario.AVALIADOR:
+        cursos = Curso.objects.filter(avaliadores=request.user)
+        return render(request, 'cursos/home.html', {'cursos': cursos})
+    else:
+        return render(request, 'cursos/home.html')
 
 @login_required
 def edit_user(request):
@@ -52,3 +73,9 @@ def detalhes_usuario(request, user_id=None):
             'cursos': None,
         }
     return render(request, 'usuarios/detalhes_usuario.html', context)
+
+
+def listar_relatores(request):
+    relatores = Usuario.objects.filter(tipo_usuario=Usuario.RELATOR)
+    return render(request, 'cursos/listar_relatores.html', {'relatores': relatores})
+

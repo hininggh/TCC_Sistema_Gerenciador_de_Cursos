@@ -5,12 +5,8 @@ from .forms import CursoForm
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from indicadores.models import IndicadorMan, IndicadorInfo
-from django.urls import reverse
 
 
-def listar_relatores(request):
-    relatores = Usuario.objects.filter(tipo_usuario=Usuario.RELATOR)
-    return render(request, 'cursos/listar_relatores.html', {'relatores': relatores})
 
 
 def criar_curso(request, curso_id=None):
@@ -134,3 +130,7 @@ def detalhes_curso_ava(request, curso_id):
         'indicadores_por_dimensao': indicadores_por_dimensao,
     }
     return render(request, 'cursos/detalhes_curso_ava.html', context)
+
+def listar_cursos(request):
+    cursos = Curso.objects.filter(gerenciador=request.user)
+    return render(request, 'cursos/listar_cursos.html', {'cursos': cursos})

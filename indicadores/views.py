@@ -6,6 +6,9 @@ from PyPDF2 import PdfFileMerger
 from usuarios.models import Usuario
 from django.http import HttpResponse, JsonResponse
 from io import BytesIO
+from cursos.models import Curso
+from django.utils import timezone
+
 
 
 
@@ -58,3 +61,40 @@ def baixar_conteudo(request, indicador_man_id):
     else:
         data = {'error': 'Você não tem permissão para baixar este conteúdo.'}
         return JsonResponse(data, status=403)
+
+
+
+def verificar_vinculo(request, curso_id):
+    curso = get_object_or_404(Curso, pk=curso_id)
+    if request.user == curso.gerenciador or (request.user.tipo_usuario == Usuario.RELATOR and request.user in curso.membros.all()):
+        return True
+    else:
+        return False
+
+
+
+def apagar_conteudo(request, indicador_man_id):
+    indicador_man = get_object_or_404(IndicadorMan, pk=indicador_man_id)
+    if not verificar_vinculo(request, indicador_man.curso.id):
+        return redirect('home')
+    indicador_man.conteudo.delete()
+    indicador_man.usuario_relatorio = None
+    indicador_man.data_envio = None
+    indicador_man.save()
+    return redirect('indicador_detalhes', indicador_man_id=indicador_man.id)
+
+def enviar_arquivo(request, indicador_man_id):
+    indicador_man = get_object_or_404(IndicadorMan, pk=indicador_man_id)
+    if not verificar_vinculo(request, indicador_man.curso.id):
+        return redirect('home')
+    if request.method == 'POST':
+        form = RelatorioForm(request.POST, request.FILES)
+        if form.is_valid():
+            indicador_man.conteudo = form.cleaned_data['relatorio']
+            indicador_man.usuario_relatorio = request.user
+            indicador_man.data_envio = timezone.now()
+            indicador_man.save()
+            return redirect('indicador_detalhes', indicador_man_id=indicador_man.id)
+    else:
+        form = RelatorioForm()
+    return render(request, 'indicadores/enviar_arquivo.html', {'form': form})

@@ -1,10 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<h1>Relatores</h1>
+<ul>
+    {% for relator in relatores %}
+        <li>{{ relator.nome }}</li>
+    {% endfor %}
+</ul>
 
-</body>
-</html>
+<!-- listar_cursos.html -->
+<h1>Cursos que Gerencio</h1>
+<ul>
+    {% for curso in cursos %}
+        <li>{{ curso.nome }}</li>
+    {% endfor %}
+</ul>
