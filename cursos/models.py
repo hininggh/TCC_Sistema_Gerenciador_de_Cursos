@@ -7,7 +7,7 @@ import os
 class Curso(models.Model):
     nome = models.CharField(max_length=255)
     inscricao_curricular = models.CharField(max_length=255)
-    data_criacao = models.DateField()
+    data_criacao = models.DateField(auto_now_add=True)
     descricao = models.TextField()
     gerenciador = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     informacoes_complementares = models.TextField(blank=True)

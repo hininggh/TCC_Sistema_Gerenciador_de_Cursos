@@ -56,9 +56,16 @@
                 {% for indicador_man in indicadores_man %}
                     <li>
                         <a href="{% url 'indicadores:indicador_detalhes' indicador_man.id %}" title="{{ indicador_man.indicador_info.mensagem_aviso }}">{{ indicador_man.indicador_info.nome }}</a>
-                        - NSA: {{ indicador_man.nsa }}
-                        - Data de Envio: {{ indicador_man.data_envio }}
-                        - Quem Enviou: <a href="{% url 'usuarios:detalhes_usuario' indicador_man.usuario_relatorio.id %}">{{ indicador_man.usuario_relatorio.nome }}</a>
+                        {% if indicador_man.nsa %}
+                            - NSA: {{ indicador_man.nsa }}
+                        {% endif %}
+                        - Nível Suposto: {{ indicador_man.nivel_suposto }}
+                        {% if indicador_man.usuario_relatorio %}
+                            <a href="{% url 'usuarios:detalhes_usuario' indicador_man.usuario_relatorio.id %}">{{ indicador_man.usuario_relatorio.nome }}</a>
+                            - Data de Envio: {{ indicador_man.data_envio }}
+                        {% else %}
+                            Nenhum envio
+                        {% endif %}
                     </li>
                 {% endfor %}
             </ul>

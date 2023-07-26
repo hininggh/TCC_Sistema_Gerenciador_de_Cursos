@@ -53,7 +53,7 @@ def login_view(request):
 
 
 @login_required
-def edit_user(request):
+def editar_perfil(request):
     if request.method == 'POST':
         form = UsuarioChangeForm(request.POST, instance=request.user)
         if form.is_valid():

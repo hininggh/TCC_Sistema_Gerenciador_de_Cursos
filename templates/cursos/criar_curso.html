@@ -1,85 +1,150 @@
-<h1>{% if curso.id %}Editar{% else %}Criar{% endif %} Curso</h1>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <label for="relator-input">Relatores:</label>
-    <div id="relatores-selecionados"></div>
-    <input type="text" id="relator-input" placeholder="Buscar relator">
-    <div id="relatores-container" style="display: none;">
-        <ul id="relatores-lista" style="max-height: 200px; overflow-y: auto;"></ul>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <style>
+        body {
+            background-image: url("{% static 'images/fundologin.jpg' %}");
+        }
+        .paglogin-form-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .paglogin-form-box {
+            background: linear-gradient(to top right, white, lightgray);
+            padding: 20px;
+            border-radius: 20px;
+            max-height: 100vh;
+            overflow-y: auto;
+        }
+
+        .paglogin-form-box label,
+        .paglogin-form-box input,
+        .paglogin-form-box button {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .paglogin-form-box label {
+            color: black;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .paglogin-form-box input,
+        .paglogin-form-box button {
+            border-radius: 10px;
+        }
+
+        .paglogin-form-box button {
+            background: linear-gradient(to right, #1e3d59, #3a506b);
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .paglogin-form-box select {
+            display: block;
+            margin: 0 auto;
+        }
+
+        #relatores-lista {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+    <div class="paglogin-form-container">
+      <div class="paglogin-form-box">
+          <h1>{% if curso.id %}Editar{% else %}Criar{% endif %} Curso</h1>
+          <form method="post">
+              {% csrf_token %}
+              {{ form.as_p }}
+              <div id="relatores-selecionados"></div>
+              <input type="text" id="relator-input" placeholder="Buscar relator">
+              <div id="relatores-container" style="display: none;">
+                  <ul id="relatores-lista"></ul>
+              </div>
+              <input type="submit" value="Salvar">
+          </form>
+
+          {% if curso.id %}
+              <form method="post" action="{% url 'cursos:excluir_curso' curso.id %}">
+                  {% csrf_token %}
+                  <input type="submit" value="Excluir">
+              </form>
+          {% endif %}
+      </div>
     </div>
-    <input type="submit" value="Salvar">
-</form>
 
-{% if curso.id %}
-    <form method="post" action="{% url 'cursos:excluir_curso' curso.id %}">
-        {% csrf_token %}
-        <input type="submit" value="Excluir">
-    </form>
-{% endif %}
+    <script>
+      const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+      const relatorInput = document.querySelector('#relator-input');
+      const relatoresContainer = document.querySelector('#relatores-container');
+      const relatoresLista = document.querySelector('#relatores-lista');
+      const relatoresSelecionados = document.querySelector('#relatores-selecionados');
 
-<script>
-  const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-  const relatorInput = document.querySelector('#relator-input');
-  const relatoresContainer = document.querySelector('#relatores-container');
-  const relatoresLista = document.querySelector('#relatores-lista');
-  const relatoresSelecionados = document.querySelector('#relatores-selecionados');
+      function adicionarRelator(relator) {
+        const span = document.createElement('span');
+        span.textContent = relator.nome;
+        span.style.marginRight = '10px';
+        relatoresSelecionados.appendChild(span);
 
-  function adicionarRelator(relator) {
-    const span = document.createElement('span');
-    span.textContent = relator.nome;
-    span.style.marginRight = '10px';
-    relatoresSelecionados.appendChild(span);
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'relatores';
+        input.value = relator.id;
+        relatoresSelecionados.appendChild(input);
+      }
 
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'relatores';
-    input.value = relator.id;
-    relatoresSelecionados.appendChild(input);
-  }
-
-  function buscarRelatores() {
-    fetch('{% url 'cursos:buscar_relatores' %}?q=' + encodeURIComponent(relatorInput.value), {
-      headers: {
-        'X-CSRFToken': csrftoken,
-      },
-    })
-      .then(response => response.json())
-      .then(relatores => {
-        relatoresLista.innerHTML = '';
-        for (const relator of relatores) {
-          const li = document.createElement('li');
-          li.textContent = relator.nome;
-          li.style.cursor = 'pointer';
-          li.addEventListener('click', () => {
-            adicionarRelator(relator);
-            li.remove();
+      function buscarRelatores() {
+        fetch('{% url 'cursos:buscar_relatores' %}?q=' + encodeURIComponent(relatorInput.value), {
+          headers: {
+            'X-CSRFToken': csrftoken,
+          },
+        })
+          .then(response => response.json())
+          .then(relatores => {
+            relatoresLista.innerHTML = '';
+            for (const relator of relatores) {
+              const li = document.createElement('li');
+              li.textContent = relator.nome;
+              li.style.cursor = 'pointer';
+              li.addEventListener('click', () => {
+                adicionarRelator(relator);
+                li.remove();
+              });
+              relatoresLista.appendChild(li);
+            }
           });
-          relatoresLista.appendChild(li);
+      }
+
+      let timeoutId = null;
+      relatorInput.addEventListener('input', () => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(buscarRelatores, 500);
+      });
+
+      relatorInput.addEventListener('focus', () => {
+        relatoresContainer.style.display = '';
+        buscarRelatores();
+      });
+
+      document.body.addEventListener('click', event => {
+        if (!relatoresContainer.contains(event.target) && event.target !== relatorInput) {
+          relatoresContainer.style.display = 'none';
         }
       });
-  }
 
-  let timeoutId = null;
-  relatorInput.addEventListener('input', () => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(buscarRelatores, 500);
-  });
-
-  relatorInput.addEventListener('focus', () => {
-    relatoresContainer.style.display = '';
-    buscarRelatores();
-  });
-
-  document.body.addEventListener('click', event => {
-    if (!relatoresContainer.contains(event.target) && event.target !== relatorInput) {
-      relatoresContainer.style.display = 'none';
-    }
-  });
-
-  {% if curso.id %}
-    {% for relator in curso.membros.all %}
-        adicionarRelator({id: '{{ relator.id }}', nome: '{{ relator.nome }}'});
-    {% endfor %}
-  {% endif %}
-</script>
+      {% if curso.id %}
+        {% for relator in curso.membros.all %}
+            adicionarRelator({id: '{{ relator.id }}', nome: '{{ relator.nome }}'});
+        {% endfor %}
+      {% endif %}
+    </script>
+{% endblock %}

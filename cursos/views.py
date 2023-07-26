@@ -9,6 +9,7 @@ from .forms import CapaForm
 
 
 def criar_curso(request, curso_id=None):
+    novo_curso = not bool(curso_id)
     if curso_id:
         curso = get_object_or_404(Curso, pk=curso_id)
     else:
@@ -19,13 +20,13 @@ def criar_curso(request, curso_id=None):
         if form.is_valid():
             curso = form.save()
             relatores_ids = request.POST.getlist('relatores')
-            relatores = Usuario.objects.filter(id__in=relatores_ids)
+            relatores = Usuario.objects.filter(id__in=[id for id in relatores_ids if id])
             curso.membros.set(relatores)
-            if not curso_id:
+            if novo_curso:
                 indicadores_info = IndicadorInfo.objects.all()
                 for indicador_info in indicadores_info:
                     IndicadorMan.objects.create(curso=curso, indicador_info=indicador_info)
-            return redirect('detalhes_curso_gen', curso_id=curso.id)
+            return redirect('cursos:detalhes_curso_gen', curso_id=curso.id)
     else:
         form = CursoForm(instance=curso)
     return render(request, 'cursos/criar_curso.html', {'form': form, 'curso': curso})
@@ -42,9 +43,9 @@ def excluir_curso(request, curso_id):
         if curso.capa:
             curso.capa.delete()
         curso.delete()
-        return redirect('home')
+        return redirect('usuarios:home')
     else:
-        return redirect('criar_curso', curso_id=curso_id)
+        return redirect('cursos:criar_curso', curso_id=curso_id)
 
 def buscar_relatores(request):
     q = request.GET.get('q', '')
@@ -97,7 +98,7 @@ def detalhes_curso_gen(request, curso_id):
             curso.capa = form.cleaned_data['capa']
             curso.usuario_capa = request.user
             curso.save()
-            return redirect('detalhes_curso_gen', curso_id=curso.id)
+            return redirect('cursos:detalhes_curso_gen', curso_id=curso.id)
     else:
         form = CapaForm()
     context = {

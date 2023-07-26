@@ -1,125 +1,137 @@
-<style>
-  .minimizable {
-    border: 1px solid #ccc;
-    padding: 10px;
-    margin-bottom: 10px;
-  }
-  .minimizable h2 {
-    margin-top: 0;
-    cursor: pointer;
-  }
-  .minimizable-content {
-    margin-top: 10px;
-  }
-</style>
+{% extends 'base.html' %}
+{% load static %}
 
-<h1>{{ curso.nome }}</h1>
-<p>Inscrição Curricular: {{ curso.inscricao_curricular }}</p>
-<p>Descrição: {{ curso.descricao }}</p>
-<p><a href="{% url 'cursos:editar_curso' curso.id %}">Editar Curso</a></p>
+{% block content %}
+    <style>
+      .minimizable {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+      .minimizable h2 {
+        margin-top: 0;
+        cursor: pointer;
+      }
+      .minimizable-content {
+        margin-top: 10px;
+      }
+    </style>
 
-<h2>Capa do Curso</h2>
-{% if curso.capa %}
-    <p><a href="{{ curso.capa.url }}">Baixar</a></p>
-    <form action="{% url 'cursos:apagar_capa' curso.id %}" method="post" onsubmit="return confirm('Tem certeza de que deseja apagar esta capa?')">
+    <h1>{{ curso.nome }}</h1>
+    <p>Inscrição Curricular: {{ curso.inscricao_curricular }}</p>
+    <p>Descrição: {{ curso.descricao }}</p>
+    <p><a href="{% url 'cursos:editar_curso' curso.id %}">Editar Curso</a></p>
+
+    <h2>Capa do Curso</h2>
+    {% if curso.capa %}
+        <p><a href="{{ curso.capa.url }}" target="_blank">Baixar</a></p>
+        <form action="{% url 'cursos:apagar_capa' curso.id %}" method="post" onsubmit="return confirm('Tem certeza de que deseja apagar esta capa?')">
+            {% csrf_token %}
+            <input type="submit" value="Apagar">
+        </form>
+    {% endif %}
+    <form method="post" enctype="multipart/form-data" {% if curso.capa %}onsubmit="return confirm('Tem certeza de que deseja enviar esta capa? Isso substituirá permanentemente a capa existente.')"{% endif %}>
         {% csrf_token %}
-        <input type="submit" value="Apagar">
+        {{ form.as_p }}
+        <input type="submit" value="{% if curso.capa %}Substituir{% else %}Enviar{% endif %}">
     </form>
-{% endif %}
-<form method="post" enctype="multipart/form-data" onsubmit="return confirm('Tem certeza de que deseja enviar esta capa? Isso substituirá permanentemente a capa existente.')">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="{% if curso.capa %}Substituir{% else %}Enviar{% endif %}">
-</form>
 
-<h2>Relatores</h2>
-<ul>
-    {% for relator in relatores %}
-        <li><a href="{% url 'usuarios:detalhes_usuario' relator.id %}">{{ relator.nome }}</a></li>
-    {% endfor %}
-</ul>
+    <h2>Relatores</h2>
+    <ul>
+        {% for relator in relatores %}
+            <li><a href="{% url 'usuarios:detalhes_usuario' relator.id %}">{{ relator.nome }}</a></li>
+        {% endfor %}
+    </ul>
 
-<div class="minimizable">
-  <h2>Mural Gen</h2>
-  <div class="minimizable-content">
-    {% if request.user == curso.gerenciador %}
-      <textarea id="mural-gen">{{ curso.mural_gen }}</textarea>
-    {% else %}
-      <p>{{ curso.mural_gen }}</p>
-    {% endif %}
-  </div>
-</div>
-
-<div class="minimizable">
-  <h2>Mural Eq</h2>
-  <div class="minimizable-content">
-    {% if request.user in relatores %}
-      <textarea id="mural-eq">{{ curso.mural_eq }}</textarea>
-    {% else %}
-      <p>{{ curso.mural_eq }}</p>
-    {% endif %}
-  </div>
-</div>
-
-<h2>Indicadores</h2>
-{% for dimensao, indicadores_man in indicadores_por_dimensao.items %}
     <div class="minimizable">
-        <h3>{{ dimensao }}</h3>
-        <div class="minimizable-content">
-            <ul>
-                {% for indicador_man in indicadores_man %}
-                    <li>
-                        <a href="{% url 'indicadores:indicador_detalhes' indicador_man.id %}" title="{{ indicador_man.indicador_info.mensagem_aviso }}">{{ indicador_man.indicador_info.nome }}</a>
-                        - NSA: {{ indicador_man.nsa }}
-                        - Data de Envio: {{ indicador_man.data_envio }}
-                        - Quem Enviou: <a href="{% url 'usuarios:detalhes_usuario' indicador_man.usuario_relatorio.id %}">{{ indicador_man.usuario_relatorio.nome }}</a>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
+      <h2>Mural Gen</h2>
+      <div class="minimizable-content">
+        {% if request.user == curso.gerenciador %}
+          <textarea id="mural-gen">{{ curso.mural_gen }}</textarea>
+        {% else %}
+          <p>{{ curso.mural_gen }}</p>
+        {% endif %}
+      </div>
     </div>
-{% endfor %}
 
-<h2>Informações Complementares</h2>
-<p>{{ curso.informacoes_complementares }}</p>
+    <div class="minimizable">
+      <h2>Mural Eq</h2>
+      <div class="minimizable-content">
+        {% if request.user in relatores %}
+          <textarea id="mural-eq">{{ curso.mural_eq }}</textarea>
+        {% else %}
+          <p>{{ curso.mural_eq }}</p>
+        {% endif %}
+      </div>
+    </div>
 
-<script>
-  const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    <h2>Indicadores</h2>
+    {% for dimensao, indicadores_man in indicadores_por_dimensao.items %}
+        <div class="minimizable">
+            <h3>{{ dimensao }}</h3>
+            <div class="minimizable-content">
+                <ul>
+                    {% for indicador_man in indicadores_man %}
+                        <li>
+                            <a href="{% url 'indicadores:indicador_detalhes' indicador_man.id %}" title="{{ indicador_man.indicador_info.mensagem_aviso }}">{{ indicador_man.indicador_info.nome }}</a>
+                            {% if indicador_man.nsa %}
+                                - NSA: {{ indicador_man.nsa }}
+                            {% endif %}
+                            - Nível Suposto: {{ indicador_man.nivel_suposto }}
+                            {% if indicador_man.usuario_relatorio %}
+                                <a href="{% url 'usuarios:detalhes_usuario' indicador_man.usuario_relatorio.id %}">{{ indicador_man.usuario_relatorio.nome }}</a>
+                                - Data de Envio: {{ indicador_man.data_envio }}
+                            {% else %}
+                                Nenhum envio
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    {% endfor %}
 
-  const muralGen = document.querySelector('#mural-gen');
-  if (muralGen) {
-    muralGen.addEventListener('input', () => {
-      fetch('{% url 'atualizar_mural_gen' curso.id %}', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'X-CSRFToken': csrftoken,
-        },
-        body: `novo_texto=${encodeURIComponent(muralGen.value)}`,
-      });
-    });
-  }
+    <h2>Informações Complementares</h2>
+    <p>{{ curso.informacoes_complementares }}</p>
 
-  const muralEq = document.querySelector('#mural-eq');
-  if (muralEq) {
-    muralEq.addEventListener('input', () => {
-      fetch('{% url 'atualizar_mural_eq' curso.id %}', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'X-CSRFToken': csrftoken,
-        },
-        body: `novo_texto=${encodeURIComponent(muralEq.value)}`,
-      });
-    });
-  }
+    <script>
+      const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-  const minimizables = document.querySelectorAll('.minimizable');
-  for (const minimizable of minimizables) {
-    const title = minimizable.querySelector('h2, h3');
-    const content = minimizable.querySelector('.minimizable-content');
-    title.addEventListener('click', () => {
-      content.style.display = content.style.display === 'none' ? '' : 'none';
-    });
-  }
-</script>
+      const muralGen = document.querySelector('#mural-gen');
+      if (muralGen) {
+        muralGen.addEventListener('input', () => {
+          fetch('{% url 'cursos:atualizar_mural_gen' curso.id %}', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'X-CSRFToken': csrftoken,
+            },
+            body: `novo_texto=${encodeURIComponent(muralGen.value)}`,
+          });
+        });
+      }
+
+      const muralEq = document.querySelector('#mural-eq');
+      if (muralEq) {
+        muralEq.addEventListener('input', () => {
+          fetch('{% url 'cursos:atualizar_mural_eq' curso.id %}', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'X-CSRFToken': csrftoken,
+            },
+            body: `novo_texto=${encodeURIComponent(muralEq.value)}`,
+          });
+        });
+      }
+
+      const minimizables = document.querySelectorAll('.minimizable');
+      for (const minimizable of minimizables) {
+        const title = minimizable.querySelector('h2, h3');
+        const content = minimizable.querySelector('.minimizable-content');
+        title.addEventListener('click', () => {
+          content.style.display = content.style.display === 'none' ? '' : 'none';
+        });
+      }
+    </script>
+{% endblock %}

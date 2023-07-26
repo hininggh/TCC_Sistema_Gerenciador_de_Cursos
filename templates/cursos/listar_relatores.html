@@ -5,7 +5,7 @@
     <h1>Relatores</h1>
     <ul>
         {% for relator in relatores %}
-            <li>{{ relator.nome }}</li>
+            <li><a href="{% url 'usuarios:detalhes_usuario' relator.id %}">{{ relator.nome }}</a></li>
         {% endfor %}
     </ul>
 {% endblock %}

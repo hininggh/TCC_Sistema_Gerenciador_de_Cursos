@@ -59,7 +59,7 @@
     <div class="paglogin-form-container">
         <div class="paglogin-form-box">
             <h1>Editar Perfil</h1>
-            <form method="post" action="{% url 'usuarios:edit_user' %}">
+            <form method="post" action="{% url 'usuarios:editar_perfil' %}">
                 {% csrf_token %}
                 {{ form.as_p }}
                 <button type="submit">Salvar</button>
