@@ -25,8 +25,7 @@ def indicador_detalhes(request, indicador_man_id):
             return redirect('indicadores:indicador_detalhes', indicador_man_id=indicador_man.id)
         if conteudo_form.is_valid():
             conteudo_form.save()
-            return redirect('indicadores/indicador_detalhes', indicador_man_id=indicador_man.id)
-
+            return redirect('indicadores:indicador_detalhes', indicador_man_id=indicador_man.id)
     # Buscar manualmente o objeto IndicadorInfo relacionado
     indicador_info = IndicadorInfo.objects.get(pk=indicador_man.indicador_info_id)
 

@@ -43,7 +43,7 @@
             <input type="submit" value="Apagar">
         </form>
     {% endif %}
-    <form method="post" enctype="multipart/form-data">
+    <form id="conteudo-form" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ conteudo_form.as_p }}
         <input type="submit" value="{% if indicador_man.conteudo %}Substituir Conteúdo{% else %}Enviar Conteúdo{% endif %}">
@@ -79,5 +79,32 @@
           </tr>
       {% endfor %}
     </table>
+
+    <script>
+    // Adicione um ID ao formulário para facilitar a seleção
+    var form = document.querySelector('#conteudo-form');
+
+    // Adiciona um ouvinte de evento para lidar com o envio do formulário
+    form.addEventListener('submit', function(event) {
+        // Impede o comportamento padrão de envio do formulário
+        event.preventDefault();
+
+        // Cria um objeto FormData com os dados do formulário
+        var formData = new FormData(form);
+
+        // Envia os dados do formulário usando AJAX
+        fetch('{% url 'indicadores:enviar_arquivo' indicador_man.id %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(function(response) {
+            // Atualiza a página após o envio bem-sucedido
+            window.location.reload();
+        });
+    });
+    </script>
 
 {% endblock %}
