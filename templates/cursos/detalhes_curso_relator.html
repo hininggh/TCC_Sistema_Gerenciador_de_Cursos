@@ -25,7 +25,7 @@
 <h2>Relatores</h2>
 <ul>
     {% for relator in relatores %}
-        <li><a href="{% url 'detalhes_usuario' relator.id %}">{{ relator.nome }}</a></li>
+        <li><a href="{% url 'usuarios:detalhes_usuario' relator.id %}">{{ relator.nome }}</a></li>
     {% endfor %}
 </ul>
 
@@ -82,7 +82,7 @@
   const muralEq = document.querySelector('#mural-eq');
   if (muralEq) {
     muralEq.addEventListener('input', () => {
-      fetch('{% url 'atualizar_mural_eq' curso.id %}', {
+      fetch('{% url 'cursos:atualizar_mural_eq' curso.id %}', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',

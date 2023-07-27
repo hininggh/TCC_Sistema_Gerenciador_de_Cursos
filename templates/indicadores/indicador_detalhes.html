@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+    <h1>{{ indicador_man.indicador_info.nome }}</h1>
+    <p>{{ indicador_man.indicador_info.mensagem_aviso }}</p>
+
+    <!-- Adicionar regras de estilo CSS para os formulários -->
+    <style>
+        form.inline-form {
+            display: inline-block;
+        }
+        form.inline-form input[type="submit"] {
+            margin-left: 10px;
+        }
+        form.inline-form p {
+            display: inline-block;
+            margin-right: 10px;
+        }
+        /* Adicionar regra de estilo CSS para a caixa de entrada do nível */
+        input[name="nivel_suposto"] {
+            width: 20px;
+        }
+    </style>
+
+    <form method="post" class="inline-form">
+      {% csrf_token %}
+      {{ nsa_form.as_p }}
+      <input type="submit" value="Salvar">
+    </form>
+
+    <form method="post" class="inline-form">
+      {% csrf_token %}
+      {{ nivel_suposto_form.as_p }}
+      <input type="submit" value="Salvar">
+    </form>
+
+    {% if indicador_man.conteudo %}
+        <p><a href="{{ indicador_man.conteudo.url }}">Baixar</a></p>
+        <form action="{% url 'indicadores:apagar_conteudo' indicador_man.id %}" method="post" onsubmit="return confirm('Tem certeza de que deseja apagar este conteúdo?')">
+            {% csrf_token %}
+            <input type="submit" value="Apagar">
+        </form>
+    {% endif %}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ conteudo_form.as_p }}
+        <input type="submit" value="{% if indicador_man.conteudo %}Substituir Conteúdo{% else %}Enviar Conteúdo{% endif %}">
+    </form>
+    {% if indicador_man.usuario_relatorio %}
+        <p>Enviado por: <a href="{% url 'usuarios:detalhes_usuario' indicador_man.usuario_relatorio.id %}">{{ indicador_man.usuario_relatorio.nome }}</a></p>
+        <p>Data de Envio: {{ indicador_man.data_envio }}</p>
+    {% else %}
+        <p></p>
+    {% endif %}
+    <a href="{% url 'cursos:detalhes_curso_gen' curso.id %}">Voltar</a>
+
+    <!-- Adicionar regras de estilo CSS para a tabela -->
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+        td:first-child {
+            text-align: center;
+        }
+    </style>
+
+    <table>
+      <tr>
+        <th>CONCEITO</th>
+        <th>CRITÉRIO DE ANÁLISE</th>
+      </tr>
+      {% for conceito, criterio in tabela_conceitos.items %}
+          <tr>
+            <td>{{ conceito }}</td>
+            <td>{{ criterio }}</td>
+          </tr>
+      {% endfor %}
+    </table>
+
+{% endblock %}

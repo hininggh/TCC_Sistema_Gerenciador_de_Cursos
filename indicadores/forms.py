@@ -13,3 +13,8 @@ class NivelSupostoForm(forms.ModelForm):
 
 class RelatorioForm(forms.Form):
     relatorio = forms.FileField(required=False)
+
+class ConteudoForm(forms.ModelForm):
+    class Meta:
+        model = IndicadorMan
+        fields = ('conteudo',)

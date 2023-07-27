@@ -22,5 +22,5 @@ class IndicadorMan(models.Model):
     nsa = models.BooleanField(default=False)
     nivel_suposto = models.IntegerField(null=True)
     data_envio = models.DateTimeField(auto_now_add=True)
-    conteudo = models.FileField(upload_to='relatorios/', validators=[validate_pdf_file])
+    conteudo = models.FileField(upload_to='relatorios/', blank=True, validators=[validate_pdf_file])
     usuario_relatorio = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, related_name='relatorios')

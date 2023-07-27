@@ -1,4 +1,5 @@
 from django.urls import path
+from . import views
 from .views import indicador_detalhes
 from .views import enviar_arquivo, apagar_conteudo
 

@@ -115,7 +115,7 @@ def apagar_capa(request, curso_id):
     curso.capa.delete()
     curso.usuario_capa = None
     curso.save()
-    return redirect('detalhes_curso', curso_id=curso.id)
+    return redirect('cursos:detalhes_curso_gen', curso_id=curso.id)
 
 def detalhes_curso_relator(request, curso_id):
     curso = get_object_or_404(Curso, pk=curso_id)
