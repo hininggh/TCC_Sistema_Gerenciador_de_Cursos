@@ -15,26 +15,43 @@
       .minimizable-content {
         margin-top: 10px;
       }
+      .minimizable-content ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .minimizable-content li {
+        border-top: 1px solid #ccc;
+        padding: 10px 0;
+      }
+      .minimizable-content li:first-child {
+        border-top: none;
+      }
     </style>
 
     <h1>{{ curso.nome }}</h1>
     <p>Inscrição Curricular: {{ curso.inscricao_curricular }}</p>
     <p>Descrição: {{ curso.descricao }}</p>
-    <p><a href="{% url 'cursos:editar_curso' curso.id %}">Editar Curso</a></p>
-
+    {% if request.user == curso.gerenciador %}
+        <p><a href="{% url 'cursos:editar_curso' curso.id %}">Editar Curso</a></p>
+    {% endif %}
     <h2>Capa do Curso</h2>
     {% if curso.capa %}
         <p><a href="{{ curso.capa.url }}" target="_blank">Baixar</a></p>
-        <form action="{% url 'cursos:apagar_capa' curso.id %}" method="post" onsubmit="return confirm('Tem certeza de que deseja apagar esta capa?')">
-            {% csrf_token %}
-            <input type="submit" value="Apagar">
-        </form>
+        {% if request.user == curso.gerenciador %}
+            <form action="{% url 'cursos:apagar_capa' curso.id %}" method="post" onsubmit="return confirm('Tem certeza de que deseja apagar esta capa?')">
+                {% csrf_token %}
+                <input type="submit" value="Apagar">
+            </form>
+        {% endif %}
     {% endif %}
+    {% if request.user == curso.gerenciador %}
     <form method="post" enctype="multipart/form-data" {% if curso.capa %}onsubmit="return confirm('Tem certeza de que deseja enviar esta capa? Isso substituirá permanentemente a capa existente.')"{% endif %}>
         {% csrf_token %}
         {{ form.as_p }}
         <input type="submit" value="{% if curso.capa %}Substituir{% else %}Enviar{% endif %}">
     </form>
+    {% endif %}
 
     <h2>Relatores</h2>
     <ul>
@@ -75,14 +92,16 @@
                         <li>
                             <a href="{% url 'indicadores:indicador_detalhes' indicador_man.id %}" title="{{ indicador_man.indicador_info.mensagem_aviso }}">{{ indicador_man.indicador_info.nome }}</a>
                             {% if indicador_man.nsa %}
-                                - NSA: {{ indicador_man.nsa }}
+                                - NSA
                             {% endif %}
-                            - Nível Suposto: {{ indicador_man.nivel_suposto }}
+                            {% if indicador_man.nivel_suposto %}
+                                - Conceito {{ indicador_man.nivel_suposto }}
+                            {% endif %}
                             {% if indicador_man.usuario_relatorio %}
-                                <a href="{% url 'usuarios:detalhes_usuario' indicador_man.usuario_relatorio.id %}">{{ indicador_man.usuario_relatorio.nome }}</a>
+                                <a href="{% url 'usuarios:detalhes_usuario' indicador_man.usuario_relatorio.id %}">- {{ indicador_man.usuario_relatorio.nome }}</a>
                                 - Data de Envio: {{ indicador_man.data_envio }}
                             {% else %}
-                                Nenhum envio
+                                - Nenhum envio
                             {% endif %}
                         </li>
                     {% endfor %}

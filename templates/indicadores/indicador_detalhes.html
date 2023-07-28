@@ -22,39 +22,118 @@
         input[name="nivel_suposto"] {
             width: 20px;
         }
+        .icon {
+            width: 22px;
+        }
     </style>
-
-    <form method="post" class="inline-form">
-      {% csrf_token %}
-      {{ nsa_form.as_p }}
-      <input type="submit" value="Salvar">
-    </form>
-
-    <form method="post" class="inline-form">
-      {% csrf_token %}
-      {{ nivel_suposto_form.as_p }}
-      <input type="submit" value="Salvar">
-    </form>
-
-    {% if indicador_man.conteudo %}
-        <p><a href="{{ indicador_man.conteudo.url }}">Baixar</a></p>
-        <form action="{% url 'indicadores:apagar_conteudo' indicador_man.id %}" method="post" onsubmit="return confirm('Tem certeza de que deseja apagar este conteúdo?')">
+    <div style="display: inline-block;">
+        <form method="post" class="inline-form">
             {% csrf_token %}
-            <input type="submit" value="Apagar">
+            {{ nsa_form.as_p }}
+            <input type="submit" value="Salvar">
         </form>
-    {% endif %}
-    <form id="conteudo-form" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ conteudo_form.as_p }}
-        <input type="submit" value="{% if indicador_man.conteudo %}Substituir Conteúdo{% else %}Enviar Conteúdo{% endif %}">
-    </form>
-    {% if indicador_man.usuario_relatorio %}
-        <p>Enviado por: <a href="{% url 'usuarios:detalhes_usuario' indicador_man.usuario_relatorio.id %}">{{ indicador_man.usuario_relatorio.nome }}</a></p>
-        <p>Data de Envio: {{ indicador_man.data_envio }}</p>
-    {% else %}
-        <p></p>
-    {% endif %}
-    <a href="{% url 'cursos:detalhes_curso_gen' curso.id %}">Voltar</a>
+    </div>
+
+    <div style="display: inline-block;">
+        <form method="post" class="inline-form">
+            {% csrf_token %}
+            {{ nivel_suposto_form.as_p }}
+            <input type="submit" value="Salvar">
+        </form>
+    </div>
+
+    <div style="display: inline-block;">
+        <p>Relatório:</p>
+        {% if indicador_man.conteudo %}
+            <div style="float: right;">
+                {{ indicador_man.conteudo.name }}
+                <br>
+                Data de Envio: {{ indicador_man.data_envio }}<br>
+                Usuário que enviou: {{ indicador_man.usuario_relatorio.nome }}<br>
+                <!-- Adicionar atributo target="_blank" ao link "Baixar" -->
+
+                <a href="{{ indicador_man.conteudo.url }}" target="_blank">
+                    <img class="icon" src="{% static 'icons/download.png' %}" alt="Baixar">
+                </a>
+
+                <!-- Adicionar botão para substituir o relatório -->
+
+                <a href="#" id="substituir-relatorio">
+                    <img class="icon" src="{% static 'icons/substituir.png' %}" alt="Substituir">
+                </a>
+
+                <!-- Adicionar campo de arquivo oculto para selecionar o arquivo -->
+                <input type="file" id="selecionar-arquivo-substituir" style="display: none;">
+
+                <!-- Adicionar script JavaScript para manipular o clique no botão e enviar o formulário via AJAX -->
+                <script>
+                  document.getElementById('substituir-relatorio').addEventListener('click', function() {
+                    document.getElementById('selecionar-arquivo-substituir').click();
+                  });
+
+                  document.getElementById('selecionar-arquivo-substituir').addEventListener('change', function() {
+                    var file = this.files[0];
+                    var formData = new FormData();
+                    formData.append('conteudo', file);
+
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', '{% url 'indicadores:enviar_arquivo' indicador_man.id %}');
+                    xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+                    xhr.onload = function() {
+                      if (xhr.status === 200) {
+                        window.location.reload();
+                      }
+                    };
+                    xhr.send(formData);
+                  });
+                </script>
+
+
+                <form action="{% url 'indicadores:apagar_conteudo' indicador_man.id %}" method="post" class="inline-form">
+                    {% csrf_token %}
+                    <button type="submit">
+                        <img class="icon" src="{% static 'icons/cancelar.png' %}" alt="Apagar">
+                    </button>
+                </form>
+            </div>
+        {% else %}
+
+            <!-- Adicionar botão para enviar o relatório -->
+            <div style="float: right;">
+                <a href="#" id="enviar-relatorio">
+                    <img class="icon" src="{% static 'icons/envio.png' %}" alt="Enviar Relatório">
+                </a>
+
+
+                <!-- Adicionar campo de arquivo oculto para selecionar o arquivo -->
+                <input type="file" id="selecionar-arquivo" style="display: none;">
+
+                <!-- Adicionar script JavaScript para manipular o clique no botão e enviar o formulário via AJAX -->
+                <script>
+                  document.getElementById('enviar-relatorio').addEventListener('click', function() {
+                    document.getElementById('selecionar-arquivo').click();
+                  });
+
+                  document.getElementById('selecionar-arquivo').addEventListener('change', function() {
+                    var file = this.files[0];
+                    var formData = new FormData();
+                    formData.append('conteudo', file);
+
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', '{% url 'indicadores:enviar_arquivo' indicador_man.id %}');
+                    xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+                    xhr.onload = function() {
+                      if (xhr.status === 200) {
+                        window.location.reload();
+                      }
+                    };
+                    xhr.send(formData);
+                  });
+                </script>
+            </div>
+        {% endif %}
+    </div>
+    <p><a href="{% url 'cursos:detalhes_curso_gen' curso.id %}">Voltar</a></p>
 
     <!-- Adicionar regras de estilo CSS para a tabela -->
     <style>
@@ -79,32 +158,5 @@
           </tr>
       {% endfor %}
     </table>
-
-    <script>
-    // Adicione um ID ao formulário para facilitar a seleção
-    var form = document.querySelector('#conteudo-form');
-
-    // Adiciona um ouvinte de evento para lidar com o envio do formulário
-    form.addEventListener('submit', function(event) {
-        // Impede o comportamento padrão de envio do formulário
-        event.preventDefault();
-
-        // Cria um objeto FormData com os dados do formulário
-        var formData = new FormData(form);
-
-        // Envia os dados do formulário usando AJAX
-        fetch('{% url 'indicadores:enviar_arquivo' indicador_man.id %}', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}'
-            }
-        })
-        .then(function(response) {
-            // Atualiza a página após o envio bem-sucedido
-            window.location.reload();
-        });
-    });
-    </script>
 
 {% endblock %}

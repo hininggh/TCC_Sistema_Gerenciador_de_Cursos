@@ -110,12 +110,7 @@ def detalhes_curso_gen(request, curso_id):
     return render(request, 'cursos/detalhes_curso_gen.html', context)
 
 
-def apagar_capa(request, curso_id):
-    curso = get_object_or_404(Curso, pk=curso_id)
-    curso.capa.delete()
-    curso.usuario_capa = None
-    curso.save()
-    return redirect('cursos:detalhes_curso_gen', curso_id=curso.id)
+
 
 def detalhes_curso_relator(request, curso_id):
     curso = get_object_or_404(Curso, pk=curso_id)
@@ -132,7 +127,7 @@ def detalhes_curso_relator(request, curso_id):
         'relatores': relatores,
         'indicadores_por_dimensao': indicadores_por_dimensao,
     }
-    return render(request, 'cursos/detalhes_curso_relator.html', context)
+    return render(request, 'cursos/detalhes_curso_gen.html', context)
 
 def detalhes_curso_ava(request, curso_id):
     curso = get_object_or_404(Curso, pk=curso_id)
@@ -152,3 +147,10 @@ def detalhes_curso_ava(request, curso_id):
 def listar_cursos(request):
     cursos = Curso.objects.filter(gerenciador=request.user)
     return render(request, 'cursos/listar_cursos.html', {'cursos': cursos})
+
+def apagar_capa(request, curso_id):
+    curso = get_object_or_404(Curso, pk=curso_id)
+    curso.capa.delete()
+    curso.usuario_capa = None
+    curso.save()
+    return redirect('cursos:detalhes_curso_gen', curso_id=curso.id)

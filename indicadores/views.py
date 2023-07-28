@@ -8,31 +8,30 @@ from io import BytesIO
 from cursos.models import Curso
 from django.utils import timezone
 from django.http import FileResponse
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import IndicadorMan
+from .forms import IndicadorManNSAForm, IndicadorManNivelSupostoForm
+from .forms import IndicadorManConteudoForm
+
+
 
 def indicador_detalhes(request, indicador_man_id):
     indicador_man = get_object_or_404(IndicadorMan, pk=indicador_man_id)
     curso = indicador_man.curso
     nsa_form = NSAForm(request.POST or None, instance=indicador_man)
     nivel_suposto_form = NivelSupostoForm(request.POST or None, instance=indicador_man)
-    conteudo_form = ConteudoForm(request.POST or None, request.FILES or None, instance=indicador_man)
-    curso = indicador_man.curso
     if request.method == 'POST':
         if nsa_form.is_valid():
             nsa_form.save()
-            return redirect('indicadores:indicador_detalhes', indicador_man_id=indicador_man.id)
         if nivel_suposto_form.is_valid():
             nivel_suposto_form.save()
-            return redirect('indicadores:indicador_detalhes', indicador_man_id=indicador_man.id)
-        if conteudo_form.is_valid():
-            conteudo_form.save()
-            return redirect('indicadores:indicador_detalhes', indicador_man_id=indicador_man.id)
+        return redirect('indicadores:indicador_detalhes', indicador_man_id=indicador_man.id)
     # Buscar manualmente o objeto IndicadorInfo relacionado
     indicador_info = IndicadorInfo.objects.get(pk=indicador_man.indicador_info_id)
 
     context = {
         'nsa_form': nsa_form,
         'nivel_suposto_form': nivel_suposto_form,
-        'conteudo_form': conteudo_form,
         'indicador_man': indicador_man,
         'curso': curso,
         'nome_indicador': indicador_info.nome,
@@ -40,6 +39,53 @@ def indicador_detalhes(request, indicador_man_id):
         'tabela_conceitos': indicador_info.tabela_conceitos,
     }
     return render(request, 'indicadores/indicador_detalhes.html', context)
+
+#
+def indicadorman_edit_nsa(request, pk):
+    indicadorman = get_object_or_404(IndicadorMan, pk=pk)
+    if request.method == 'POST':
+        form = IndicadorManNSAForm(request.POST, instance=indicadorman)
+        if form.is_valid():
+            form.save()
+            return redirect('indicadores:indicador_detalhes', pk=pk)
+    else:
+        form = IndicadorManNSAForm(instance=indicadorman)
+    return render(request, 'indicadores/indicador_detalhes.html', {'form': form})
+
+def indicadorman_edit_nivelsuposto(request, pk):
+    indicadorman = get_object_or_404(IndicadorMan, pk=pk)
+    if request.method == 'POST':
+        form = IndicadorManNivelSupostoForm(request.POST, instance=indicadorman)
+        if form.is_valid():
+            form.save()
+            return redirect('indicadores:indicador_detalhes', pk=pk)
+    else:
+        form = IndicadorManNivelSupostoForm(instance=indicadorman)
+    return render(request, 'indicadores/indicador_detalhes.html', {'form': form})
+
+
+def enviar_arquivo(request, pk):
+    indicadorman = get_object_or_404(IndicadorMan, pk=pk)
+    if request.method == 'POST':
+        indicadorman.conteudo = request.FILES['conteudo']
+        indicadorman.usuario_relatorio = request.user
+        indicadorman.data_envio = timezone.now()
+        indicadorman.save()
+        return redirect('indicadores:indicador_detalhes', indicador_man_id=pk)
+    return redirect('indicadores:indicador_detalhes', indicador_man_id=pk)
+
+
+
+#
+def apagar_conteudo(request, indicador_man_id):
+    indicadorman = get_object_or_404(IndicadorMan, pk=indicador_man_id)
+    if not verificar_vinculo(request, indicadorman.curso.id):
+        return redirect('usuarios:home')
+    indicadorman.conteudo.delete()
+    indicadorman.usuario_relatorio = None
+    indicadorman.data_envio = None
+    indicadorman.save()
+    return redirect('indicadores:indicador_detalhes', indicador_man_id=indicadorman.id)
 
 
 def baixar_conteudo(request, indicador_man_id):
@@ -79,28 +125,5 @@ def verificar_vinculo(request, curso_id):
 
 
 
-def apagar_conteudo(request, indicador_man_id):
-    indicador_man = get_object_or_404(IndicadorMan, pk=indicador_man_id)
-    if not verificar_vinculo(request, indicador_man.curso.id):
-        return redirect('usuarios:home')
-    indicador_man.conteudo.delete()
-    indicador_man.usuario_relatorio = None
-    indicador_man.data_envio = None
-    indicador_man.save()
-    return redirect('indicadores:indicador_detalhes', indicador_man_id=indicador_man.id)
 
-def enviar_arquivo(request, indicador_man_id):
-    indicador_man = get_object_or_404(IndicadorMan, pk=indicador_man_id)
-    if not verificar_vinculo(request, indicador_man.curso.id):
-        return redirect('usuarios:home')
-    if request.method == 'POST':
-        form = ConteudoForm(request.POST, request.FILES)
-        if form.is_valid():
-            indicador_man.conteudo = form.cleaned_data['relatorio']
-            indicador_man.usuario_relatorio = request.user
-            indicador_man.data_envio = timezone.now()
-            indicador_man.save()
-            return redirect('indicadores:indicador_detalhes', indicador_man_id=indicador_man.id)
-    else:
-        form = ConteudoForm()
-    return render(request, 'indicadores/indicador_detalhes.html', {'form': form})
+

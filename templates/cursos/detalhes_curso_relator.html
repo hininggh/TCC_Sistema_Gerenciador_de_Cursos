@@ -1,104 +1,138 @@
-<style>
-  .minimizable {
-    border: 1px solid #ccc;
-    padding: 10px;
-    margin-bottom: 10px;
-  }
-  .minimizable h2 {
-    margin-top: 0;
-    cursor: pointer;
-  }
-  .minimizable-content {
-    margin-top: 10px;
-  }
-</style>
+{% extends 'base.html' %}
+{% load static %}
 
-<h1>{{ curso.nome }}</h1>
-<p>Inscrição Curricular: {{ curso.inscricao_curricular }}</p>
-<p>Descrição: {{ curso.descricao }}</p>
+{% block content %}
+    <style>
+      .minimizable {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+      .minimizable h2 {
+        margin-top: 0;
+        cursor: pointer;
+      }
+      .minimizable-content {
+        margin-top: 10px;
+      }
+      .minimizable-content ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .minimizable-content li {
+        border-top: 1px solid #ccc;
+        padding: 10px 0;
+      }
+      .minimizable-content li:first-child {
+        border-top: none;
+      }
+    </style>
 
-<h2>Capa do Curso</h2>
-{% if curso.capa %}
-    <p><a href="{{ curso.capa.url }}">Baixar</a></p>
-{% endif %}
 
-<h2>Relatores</h2>
-<ul>
-    {% for relator in relatores %}
-        <li><a href="{% url 'usuarios:detalhes_usuario' relator.id %}">{{ relator.nome }}</a></li>
-    {% endfor %}
-</ul>
+    <h1>{{ curso.nome }}</h1>
+    <p>Inscrição Curricular: {{ curso.inscricao_curricular }}</p>
+    <p>Descrição: {{ curso.descricao }}</p>
 
-<div class="minimizable">
-  <h2>Mural Gen</h2>
-  <div class="minimizable-content">
-      <p>{{ curso.mural_gen }}</p>
-  </div>
-</div>
-
-<div class="minimizable">
-  <h2>Mural Eq</h2>
-  <div class="minimizable-content">
-    {% if request.user in relatores %}
-      <textarea id="mural-eq">{{ curso.mural_eq }}</textarea>
-    {% else %}
-      <p>{{ curso.mural_eq }}</p>
+    <h2>Capa do Curso</h2>
+    {% if curso.capa %}
+        <p><a href="{{ curso.capa.url }}">Baixar</a></p>
     {% endif %}
-  </div>
-</div>
 
-<h2>Indicadores</h2>
-{% for dimensao, indicadores_man in indicadores_por_dimensao.items %}
+    <h2>Relatores</h2>
+    <ul>
+        {% for relator in relatores %}
+            <li><a href="{% url 'usuarios:detalhes_usuario' relator.id %}">{{ relator.nome }}</a></li>
+        {% endfor %}
+    </ul>
+
     <div class="minimizable">
-        <h3>{{ dimensao }}</h3>
-        <div class="minimizable-content">
-            <ul>
-                {% for indicador_man in indicadores_man %}
-                    <li>
-                        <a href="{% url 'indicadores:indicador_detalhes' indicador_man.id %}" title="{{ indicador_man.indicador_info.mensagem_aviso }}">{{ indicador_man.indicador_info.nome }}</a>
-                        {% if indicador_man.nsa %}
-                            - NSA: {{ indicador_man.nsa }}
-                        {% endif %}
-                        - Nível Suposto: {{ indicador_man.nivel_suposto }}
-                        {% if indicador_man.usuario_relatorio %}
-                            <a href="{% url 'usuarios:detalhes_usuario' indicador_man.usuario_relatorio.id %}">{{ indicador_man.usuario_relatorio.nome }}</a>
-                            - Data de Envio: {{ indicador_man.data_envio }}
-                        {% else %}
-                            Nenhum envio
-                        {% endif %}
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
+      <h2>Mural Gen</h2>
+      <div class="minimizable-content">
+          <p>{{ curso.mural_gen }}</p>
+      </div>
     </div>
-{% endfor %}
 
-<h2>Informações Complementares</h2>
-<p>{{ curso.informacoes_complementares }}</p>
+    <div class="minimizable">
+      <h2>Mural Eq</h2>
+      <div class="minimizable-content">
+        {% if request.user in relatores %}
+          <textarea id="mural-eq">{{ curso.mural_eq }}</textarea>
+        {% else %}
+          <p>{{ curso.mural_eq }}</p>
+        {% endif %}
+      </div>
+    </div>
 
-<script>
-  const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    <h2>Indicadores</h2>
+    {% for dimensao, indicadores_man in indicadores_por_dimensao.items %}
+        <div class="minimizable">
+            <h3>{{ dimensao }}</h3>
+            <div class="minimizable-content">
+                <ul>
+                    {% for indicador_man in indicadores_man %}
+                        <li>
+                            <a href="{% url 'indicadores:indicador_detalhes' indicador_man.id %}" title="{{ indicador_man.indicador_info.mensagem_aviso }}">{{ indicador_man.indicador_info.nome }}</a>
+                            {% if indicador_man.nsa %}
+                                - NSA
+                            {% endif %}
+                            {% if indicador_man.nivel_suposto %}
+                                - Conceito {{ indicador_man.nivel_suposto }}
+                            {% endif %}
+                            {% if indicador_man.usuario_relatorio %}
+                                <a href="{% url 'usuarios:detalhes_usuario' indicador_man.usuario_relatorio.id %}">- {{ indicador_man.usuario_relatorio.nome }}</a>
+                                - Data de Envio: {{ indicador_man.data_envio }}
+                            {% else %}
+                                - Nenhum envio
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    {% endfor %}
 
-  const muralEq = document.querySelector('#mural-eq');
-  if (muralEq) {
-    muralEq.addEventListener('input', () => {
-      fetch('{% url 'cursos:atualizar_mural_eq' curso.id %}', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'X-CSRFToken': csrftoken,
-        },
-        body: `novo_texto=${encodeURIComponent(muralEq.value)}`,
-      });
-    });
-  }
+    <h2>Informações Complementares</h2>
+    <p>{{ curso.informacoes_complementares }}</p>
 
-  const minimizables = document.querySelectorAll('.minimizable');
-  for (const minimizable of minimizables) {
-    const title = minimizable.querySelector('h2, h3');
-    const content = minimizable.querySelector('.minimizable-content');
-    title.addEventListener('click', () => {
-      content.style.display = content.style.display === 'none' ? '' : 'none';
-    });
-  }
-</script>
+    <script>
+      const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+      const muralGen = document.querySelector('#mural-gen');
+      if (muralGen) {
+        muralGen.addEventListener('input', () => {
+          fetch('{% url 'cursos:atualizar_mural_gen' curso.id %}', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'X-CSRFToken': csrftoken,
+            },
+            body: `novo_texto=${encodeURIComponent(muralGen.value)}`,
+          });
+        });
+      }
+
+      const muralEq = document.querySelector('#mural-eq');
+      if (muralEq) {
+        muralEq.addEventListener('input', () => {
+          fetch('{% url 'cursos:atualizar_mural_eq' curso.id %}', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'X-CSRFToken': csrftoken,
+            },
+            body: `novo_texto=${encodeURIComponent(muralEq.value)}`,
+          });
+        });
+      }
+
+      const minimizables = document.querySelectorAll('.minimizable');
+      for (const minimizable of minimizables) {
+        const title = minimizable.querySelector('h2, h3');
+        const content = minimizable.querySelector('.minimizable-content');
+        title.addEventListener('click', () => {
+          content.style.display = content.style.display === 'none' ? '' : 'none';
+        });
+      }
+    </script>
+{% endblock %}
