@@ -35,6 +35,7 @@
     {% if request.user == curso.gerenciador %}
         <p><a href="{% url 'cursos:editar_curso' curso.id %}">Editar Curso</a></p>
     {% endif %}
+    <a href="{% url 'cursos:curso_resumo' curso.id %}">Página resumida</a></p>
     <h2>Capa do Curso</h2>
     {% if curso.capa %}
         <p><a href="{{ curso.capa.url }}" target="_blank">Baixar</a></p>

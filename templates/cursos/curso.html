@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <style>
+      .minimizable {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+      .minimizable h2 {
+        margin-top: 0;
+        cursor: pointer;
+      }
+      .minimizable-content {
+        margin-top: 10px;
+      }
+      .minimizable-content ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .minimizable-content li {
+        border-top: 1px solid #ccc;
+        padding: 10px 0;
+      }
+      .minimizable-content li:first-child {
+        border-top: none;
+      }
+      .icon {
+            width: 22px;
+        }
+        .inline-form {
+            display: inline-block;
+        }
+    </style>
+
+    <h1>{{ curso.nome }}</h1>
+    <p>Inscrição Curricular: {{ curso.inscricao_curricular }}</p>
+    <p>Descrição: {{ curso.descricao }}</p>
+    {% if request.user == curso.gerenciador %}
+        <p><a href="{% url 'cursos:editar_curso' curso.id %}">Editar Curso</a></p>
+    {% endif %}
+
+    <h2>Indicadores</h2>
+    {% for dimensao, indicadores_man in indicadores_por_dimensao.items %}
+        <div class="minimizable">
+            <h3>{{ dimensao }}</h3>
+            <div class="minimizable-content">
+                <ul>
+                    {% for indicador_man in indicadores_man %}
+                        <li>
+                            <a href="{% url 'indicadores:indicador_detalhes' indicador_man.id %}" title="{{ indicador_man.indicador_info.mensagem_aviso }}">{{ indicador_man.indicador_info.nome }}</a>
+                            {% if indicador_man.nsa %}
+                                - NSA
+                            {% endif %}
+                            {% if indicador_man.nivel_suposto %}
+                                - Conceito {{ indicador_man.nivel_suposto }}
+                            {% endif %}
+                            {% if indicador_man.usuario_relatorio %}
+                                <a href="{% url 'usuarios:detalhes_usuario' indicador_man.usuario_relatorio.id %}">- {{ indicador_man.usuario_relatorio.nome }}</a>
+                                - Data de Envio: {{ indicador_man.data_envio }}
+                            {% else %}
+                                - Nenhum envio
+                            {% endif %}
+
+
+                            {% if indicador_man.conteudo %}
+                                <div style="float: right;">
+                                    <a href="{{ indicador_man.conteudo.url }}" target="_blank">
+                                        <img class="icon" src="{% static 'icons/download.png' %}" alt="Baixar">
+                                    </a>
+                                    <a href="#" id="substituir-relatorio">
+                                        <img class="icon" src="{% static 'icons/substituir.png' %}" alt="Substituir">
+                                    </a>
+                                    <input type="file" id="selecionar-arquivo-substituir" style="display: none;">
+                                    <script>
+                                      document.getElementById('substituir-relatorio').addEventListener('click', function() {
+                                        document.getElementById('selecionar-arquivo-substituir').click();
+                                      });
+                                      document.getElementById('selecionar-arquivo-substituir').addEventListener('change', function() {
+                                        var file = this.files[0];
+                                        var formData = new FormData();
+                                        formData.append('conteudo', file);
+                                        var xhr = new XMLHttpRequest();
+                                        xhr.open('POST', '{% url 'indicadores:enviar_arquivo' indicador_man.id %}');
+                                        xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+                                        xhr.onload = function() {
+                                          if (xhr.status === 200) {
+                                            window.location.reload();
+                                          }
+                                        };
+                                        xhr.send(formData);
+                                      });
+                                    </script>
+                                    <form action="{% url 'indicadores:apagar_conteudo' indicador_man.id %}" method="post" class="inline-form">
+                                        {% csrf_token %}
+                                        <button type="submit">
+                                            <img class="icon" src="{% static 'icons/xdel.png' %}" alt="Apagar">
+                                        </button>
+                                    </form>
+                                </div>
+                            {% else %}
+                                <div style="float: right;">
+                                    <a href="#" id="enviar-relatorio">
+                                        <img class="icon" src="{% static 'icons/envio.png' %}" alt="Enviar Relatório">
+                                    </a>
+                                    <input type="file" id="selecionar-arquivo" style="display: none;">
+                                    <script>
+                                      document.getElementById('enviar-relatorio').addEventListener('click', function() {
+                                        document.getElementById('selecionar-arquivo').click();
+                                      });
+                                      document.getElementById('selecionar-arquivo').addEventListener('change', function() {
+                                        var file = this.files[0];
+                                        var formData = new FormData();
+                                        formData.append('conteudo', file);
+                                        var xhr = new XMLHttpRequest();
+                                        xhr.open('POST', '{% url 'indicadores:enviar_arquivo' indicador_man.id %}');
+                                        xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+                                        xhr.onload = function() {
+                                          if (xhr.status === 200) {
+                                            window.location.reload();
+                                          }
+                                        };
+                                        xhr.send(formData);
+                                      });
+                                    </script>
+                                </div>
+                            {% endif %}
+
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    {% endfor %}
+
+    <h2>Informações Complementares</h2>
+    <p>{{ curso.informacoes_complementares }}</p>
+
+    <script>
+      const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+      const minimizables = document.querySelectorAll('.minimizable');
+      for (const minimizable of minimizables) {
+        const title = minimizable.querySelector('h2, h3');
+        const content = minimizable.querySelector('.minimizable-content');
+        title.addEventListener('click', () => {
+          content.style.display = content.style.display === 'none' ? '' : 'none';
+        });
+      }
+    </script>
+{% endblock %}

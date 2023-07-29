@@ -1,15 +1,13 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .forms import NSAForm, NivelSupostoForm, ConteudoForm
 from .models import IndicadorMan, IndicadorInfo
-from PyPDF2 import PdfFileMerger
+from PyPDF2 import PdfMerger  # Importe a classe PdfMerger correta
 from usuarios.models import Usuario
 from django.http import HttpResponse, JsonResponse
 from io import BytesIO
 from cursos.models import Curso
 from django.utils import timezone
 from django.http import FileResponse
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import IndicadorMan
 from .forms import IndicadorManNSAForm, IndicadorManNivelSupostoForm
 from .forms import IndicadorManConteudoForm
 
@@ -39,6 +37,18 @@ def indicador_detalhes(request, indicador_man_id):
         'tabela_conceitos': indicador_info.tabela_conceitos,
     }
     return render(request, 'indicadores/indicador_detalhes.html', context)
+
+def indicador_detalhes_ava(request, indicador_man_id):
+    indicador_man = get_object_or_404(IndicadorMan, pk=indicador_man_id)
+    # Buscar manualmente o objeto IndicadorInfo relacionado
+    indicador_info = IndicadorInfo.objects.get(pk=indicador_man.indicador_info_id)
+    context = {
+        'indicador_man': indicador_man,
+        'nome_indicador': indicador_info.nome,
+        'mensagem_aviso': indicador_info.mensagem_aviso,
+        'tabela_conceitos': indicador_info.tabela_conceitos,
+    }
+    return render(request, 'indicadores/indicador_detalhes_ava.html', context)
 
 #
 def indicadorman_edit_nsa(request, pk):
@@ -97,7 +107,7 @@ def baixar_conteudo(request, indicador_man_id):
         return response
     elif request.user.tipo_usuario == Usuario.AVALIADOR:
         if curso.capa:
-            merger = PdfFileMerger()
+            merger = PdfMerger()  # Use PdfMerger em vez de PdfFileMerger
             merger.append(curso.capa.path)
             merger.append(indicador_man.conteudo.path)
             merged_pdf = BytesIO()

@@ -4,9 +4,8 @@ from .models import Curso
 class CursoForm(forms.ModelForm):
     class Meta:
         model = Curso
-        fields = ('nome', 'inscricao_curricular', 'descricao', 'informacoes_complementares', 'mural_gen')
+        fields = ('nome', 'inscricao_curricular', 'descricao', 'informacoes_complementares', 'mural_gen', 'capa')
 
-    relatores = forms.CharField(label='Relatores', widget=forms.TextInput(attrs={'id': 'relatores'}), required=False)
 
 class CapaForm(forms.ModelForm):
     class Meta:

@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import detalhes_curso_gen, atualizar_mural_gen, atualizar_mural_eq, detalhes_curso_relator
+from .views import detalhes_curso_gen, atualizar_mural_gen, atualizar_mural_eq, detalhes_curso_relator, buscar_avaliadores
 from .views import buscar_relatores, criar_curso, excluir_curso
 from .views import listar_cursos, apagar_capa
 
@@ -17,4 +17,7 @@ urlpatterns = [
     path('atualizar_mural_eq/<int:curso_id>/', atualizar_mural_eq, name='atualizar_mural_eq'),
     path('listar_cursos/', listar_cursos, name='listar_cursos'),
     path('apagar_capa/<int:curso_id>/', views.apagar_capa, name='apagar_capa'),
+    path('cursos/<int:curso_id>/resumo/', views.curso_resumo, name='curso_resumo'),
+    path('cursos/buscar_avaliadores/', views.buscar_avaliadores, name='buscar_avaliadores'),
+    path('detalhes_curso_ava/<int:curso_id>/', views.detalhes_curso_ava, name='detalhes_curso_ava'),
 ]

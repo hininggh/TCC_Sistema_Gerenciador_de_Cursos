@@ -1,62 +1,92 @@
-<style>
-  .minimizable {
-    border: 1px solid #ccc;
-    padding: 10px;
-    margin-bottom: 10px;
-  }
-  .minimizable h2 {
-    margin-top: 0;
-    cursor: pointer;
-  }
-  .minimizable-content {
-    margin-top: 10px;
-  }
-</style>
+{% extends 'base.html' %}
+{% load static %}
 
-<h1>{{ curso.nome }}</h1>
-<p>Inscrição Curricular: {{ curso.inscricao_curricular }}</p>
-<p>Descrição: {{ curso.descricao }}</p>
-<p>Gerenciador: {{ curso.gerenciador.nome }}</p>
+{% block content %}
 
-<h2>Capa do Curso</h2>
-{% if curso.capa %}
-    <p><a href="{{ curso.capa.url }}">Baixar</a></p>
-{% endif %}
+    <style>
+      .minimizable {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+      .minimizable h2 {
+        margin-top: 0;
+        cursor: pointer;
+      }
+      .minimizable-content {
+        margin-top: 10px;
+      }
+      .minimizable-content ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .minimizable-content li {
+        border-top: 1px solid #ccc;
+        padding: 10px 0;
+      }
+      .minimizable-content li:first-child {
+        border-top: none;
+      }
+      .icon {
+            width: 22px;
+        }
+        .inline-form {
+            display: inline-block;
+        }
+    </style>
 
-<h2>Indicadores</h2>
-{% for dimensao, indicadores_man in indicadores_por_dimensao.items %}
+    <h1>{{ curso.nome }}</h1>
+    <p>Inscrição Curricular: {{ curso.inscricao_curricular }}</p>
+    <p>Descrição: {{ curso.descricao }}</p>
+    <p>Gerenciador: {{ curso.gerenciador.nome }}</p>
+
+    <h2>Indicadores</h2>
+    {% for dimensao, indicadores_man in indicadores_por_dimensao.items %}
+        <div class="minimizable">
+            <h3>{{ dimensao }}</h3>
+            <div class="minimizable-content">
+                <ul>
+                    {% for indicador_man in indicadores_man %}
+                        <li>
+                            <a href="{% url 'indicadores:indicador_detalhes_ava' indicador_man.id %}" title="{{ indicador_man.indicador_info.mensagem_aviso }}">{{ indicador_man.indicador_info.nome }}</a>
+                            {% if indicador_man.nsa  %}
+                               - NSA
+                            {% endif %}
+                            {% if indicador_man.conteudo %}
+                                {% if indicador_man.conteudo %}
+                                    <div style="float: right;">
+                                        <a href="{% url 'indicadores:baixar_conteudo' indicador_man.id %}" target="_blank">
+                                            <img class="icon" src="{% static 'icons/download.png' %}" alt="Baixar">
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    {% endfor %}
+
     <div class="minimizable">
-        <h3>{{ dimensao }}</h3>
+        <h2>Informações Complementares</h2>
         <div class="minimizable-content">
-            <ul>
-                {% for indicador_man in indicadores_man %}
-                    <li>
-                        {{ indicador_man.indicador_info.nome }}
-                        - NSA: {{ indicador_man.nsa }}
-                        {% if indicador_man.conteudo %}
-                            - <a href="{{ indicador_man.conteudo.url }}">Baixar</a>
-                        {% endif %}
-                    </li>
-                {% endfor %}
-            </ul>
+            <p>{{ curso.informacoes_complementares }}</p>
         </div>
     </div>
-{% endfor %}
 
-<div class="minimizable">
-    <h2>Informações Complementares</h2>
-    <div class="minimizable-content">
-        <p>{{ curso.informacoes_complementares }}</p>
-    </div>
-</div>
+    <script>
 
-<script>
-  const minimizables = document.querySelectorAll('.minimizable');
-  for (const minimizable of minimizables) {
-    const title = minimizable.querySelector('h2, h3');
-    const content = minimizable.querySelector('.minimizable-content');
-    title.addEventListener('click', () => {
-      content.style.display = content.style.display === 'none' ? '' : 'none';
-    });
-  }
-</script>
+      const minimizables = document.querySelectorAll('.minimizable');
+      for (const minimizable of minimizables) {
+        const title = minimizable.querySelector('h2, h3');
+        const content = minimizable.querySelector('.minimizable-content');
+        title.addEventListener('click', () => {
+          content.style.display = content.style.display === 'none' ? '' : 'none';
+        });
+      }
+
+
+    </script>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+    <h1>{{ indicador_man.indicador_info.nome }}</h1>
+    <p>{{ indicador_man.indicador_info.mensagem_aviso }}</p>
+
+    <!-- Adicionar regras de estilo CSS para os formulários -->
+    <style>
+        form.inline-form {
+            display: inline-block;
+        }
+        form.inline-form input[type="submit"] {
+            margin-left: 10px;
+        }
+        form.inline-form p {
+            display: inline-block;
+            margin-right: 10px;
+        }
+        /* Adicionar regra de estilo CSS para a caixa de entrada do nível */
+        input[name="nivel_suposto"] {
+            width: 20px;
+        }
+        .icon {
+            width: 22px;
+        }
+    </style>
+    {% if indicador_man.nsa  %}
+       <p>- NSA -</p>
+    {% endif %}
+    <div style="display: inline-block;">
+        {% if indicador_man.conteudo %}
+            <div style="float: right;">
+                Relatório -
+                <a href="{{ indicador_man.conteudo.url }}" target="_blank">
+                     <img class="icon" src="{% static 'icons/download.png' %}" alt="Baixar">
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    <p><a href="{% url 'cursos:detalhes_curso_ava' indicador_man.curso_id %}">Voltar</a></p>
+
+    <!-- Adicionar regras de estilo CSS para a tabela -->
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+        td:first-child {
+            text-align: center;
+        }
+    </style>
+
+    <table>
+      <tr>
+        <th>CONCEITO</th>
+        <th>CRITÉRIO DE ANÁLISE</th>
+      </tr>
+      {% for conceito, criterio in tabela_conceitos.items %}
+          <tr>
+            <td>{{ conceito }}</td>
+            <td>{{ criterio }}</td>
+          </tr>
+      {% endfor %}
+    </table>
+
+{% endblock %}

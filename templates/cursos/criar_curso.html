@@ -58,93 +58,265 @@
             max-height: 200px;
             overflow-y: auto;
         }
+        #avaliadores-lista {
+            max-height: 200px;
+            overflow-y: auto;
+        }
     </style>
     <div class="paglogin-form-container">
-      <div class="paglogin-form-box">
-          <h1>{% if curso.id %}Editar{% else %}Criar{% endif %} Curso</h1>
-          <form method="post">
-              {% csrf_token %}
-              {{ form.as_p }}
-              <div id="relatores-selecionados"></div>
-              <input type="text" id="relator-input" placeholder="Buscar relator">
-              <div id="relatores-container" style="display: none;">
-                  <ul id="relatores-lista"></ul>
-              </div>
-              <input type="submit" value="Salvar">
-          </form>
+        <div class="paglogin-form-box">
+            <h1>{% if curso.id %}Editar{% else %}Criar{% endif %} Curso</h1>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form.as_p }}
 
-          {% if curso.id %}
-              <form method="post" action="{% url 'cursos:excluir_curso' curso.id %}">
-                  {% csrf_token %}
-                  <input type="submit" value="Excluir">
-              </form>
-          {% endif %}
-      </div>
+                <!-- Lista de Relatores -->
+                <h3>Relatores:</h3>
+                {% if curso.id %}
+                    <div id="relatores-selecionados">
+                        {% for relator in curso.membros.all %}
+                            <div data-id="{{ relator.id }}">
+                                <span>{{ relator.nome }}</span>
+                                <button type="button" onclick="removerRelator({{ relator.id }})">Retirar usuário</button>
+                                <input type="hidden" name="relatores" value="{{ relator.id }}">
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <input type="text" id="relator-input" placeholder="Buscar relator">
+                <div id="relatores-container">
+                    <ul id="relatores-lista"></ul>
+                </div>
+
+                <!-- Lista de Avaliadores -->
+                <h3>Avaliadores:</h3>
+                {% if curso.id %}
+                    <div id="avaliadores-selecionados">
+                        {% for avaliador in curso.avaliadores.all %}
+                            <div data-id="{{ avaliador.id }}">
+                                <span>{{ avaliador.nome }}</span>
+                                <button type="button" onclick="removerAvaliador({{ avaliador.id }})">Retirar usuário</button>
+                                <input type="hidden" name="avaliadores" value="{{ avaliador.id }}">
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <input type="text" id="avaliador-input" placeholder="Buscar avaliador">
+                <div id="avaliadores-container">
+                    <ul id="avaliadores-lista"></ul>
+                </div>
+
+                <input type="submit" value="Salvar">
+            </form>
+
+            {% if curso.id %}
+                <form method="post" action="{% url 'cursos:excluir_curso' curso.id %}">
+                    {% csrf_token %}
+                    <input type="submit" value="Excluir">
+                </form>
+            {% endif %}
+        </div>
     </div>
-
     <script>
-      const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-      const relatorInput = document.querySelector('#relator-input');
-      const relatoresContainer = document.querySelector('#relatores-container');
-      const relatoresLista = document.querySelector('#relatores-lista');
-      const relatoresSelecionados = document.querySelector('#relatores-selecionados');
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const relatorInput = document.querySelector('#relator-input');
+        const relatoresContainer = document.querySelector('#relatores-container');
+        const relatoresLista = document.querySelector('#relatores-lista');
+        const relatoresSelecionados = document.querySelector('#relatores-selecionados');
+        const avaliadorInput = document.querySelector('#avaliador-input');
+        const avaliadoresContainer = document.querySelector('#avaliadores-container');
+        const avaliadoresLista = document.querySelector('#avaliadores-lista');
+        const avaliadoresSelecionados = document.querySelector('#avaliadores-selecionados');
+        const relatoresSelecionadosSet = new Set();
+        const avaliadoresSelecionadosSet = new Set();
 
-      function adicionarRelator(relator) {
-        const span = document.createElement('span');
-        span.textContent = relator.nome;
-        span.style.marginRight = '10px';
-        relatoresSelecionados.appendChild(span);
-
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'relatores';
-        input.value = relator.id;
-        relatoresSelecionados.appendChild(input);
-      }
-
-      function buscarRelatores() {
-        fetch('{% url 'cursos:buscar_relatores' %}?q=' + encodeURIComponent(relatorInput.value), {
-          headers: {
-            'X-CSRFToken': csrftoken,
-          },
-        })
-          .then(response => response.json())
-          .then(relatores => {
-            relatoresLista.innerHTML = '';
-            for (const relator of relatores) {
-              const li = document.createElement('li');
-              li.textContent = relator.nome;
-              li.style.cursor = 'pointer';
-              li.addEventListener('click', () => {
-                adicionarRelator(relator);
-                li.remove();
-              });
-              relatoresLista.appendChild(li);
-            }
-          });
-      }
-
-      let timeoutId = null;
-      relatorInput.addEventListener('input', () => {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(buscarRelatores, 500);
-      });
-
-      relatorInput.addEventListener('focus', () => {
-        relatoresContainer.style.display = '';
-        buscarRelatores();
-      });
-
-      document.body.addEventListener('click', event => {
-        if (!relatoresContainer.contains(event.target) && event.target !== relatorInput) {
-          relatoresContainer.style.display = 'none';
+        // Função para verificar se um usuário já está selecionado como relator
+        function isRelatorSelected(relatorId) {
+            return relatoresSelecionadosSet.has(relatorId);
         }
-      });
 
-      {% if curso.id %}
-        {% for relator in curso.membros.all %}
-            adicionarRelator({id: '{{ relator.id }}', nome: '{{ relator.nome }}'});
-        {% endfor %}
-      {% endif %}
+        // Função para verificar se um usuário já está selecionado como avaliador
+        function isAvaliadorSelected(avaliadorId) {
+            return avaliadoresSelecionadosSet.has(avaliadorId);
+        }
+
+        function removerRelator(relatorId) {
+            const divRelator = document.querySelector(`#relatores-selecionados div[data-id="${relatorId}"]`);
+            if (divRelator) {
+                divRelator.remove();
+                relatoresSelecionadosSet.delete(relatorId);
+            }
+        }
+
+        function removerAvaliador(avaliadorId) {
+            const divAvaliador = document.querySelector(`#avaliadores-selecionados div[data-id="${avaliadorId}"]`);
+            if (divAvaliador) {
+                divAvaliador.remove();
+                avaliadoresSelecionadosSet.delete(avaliadorId);
+            }
+        }
+
+        function adicionarRelator(relator) {
+            if (!isRelatorPresent(relator.id)) {
+                const div = document.createElement('div');
+                div.setAttribute('data-id', relator.id);
+
+                const span = document.createElement('span');
+                span.textContent = relator.nome;
+                div.appendChild(span);
+
+                const button = document.createElement('button');
+                button.textContent = 'Retirar usuário';
+                button.type = 'button';
+                button.addEventListener('click', () => {
+                    removerRelator(relator.id);
+                });
+                div.appendChild(button);
+
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'relatores';
+                input.value = relator.id;
+                div.appendChild(input);
+
+                relatoresSelecionados.appendChild(div);
+
+                relatoresSelecionadosSet.add(relator.id);
+            }
+        }
+
+        function buscarRelatores() {
+            fetch('{% url 'cursos:buscar_relatores' %}?q=' + encodeURIComponent(relatorInput.value), {
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                },
+            })
+            .then(response => response.json())
+            .then(relatores => {
+                relatoresLista.innerHTML = '';
+                for (const relator of relatores) {
+                    if (!isRelatorSelected(relator.id)) {
+                        const li = document.createElement('li');
+                        li.textContent = relator.nome;
+                        li.style.cursor = 'pointer';
+                        li.addEventListener('click', () => {
+                            adicionarRelator(relator);
+                            li.remove();
+                        });
+                        relatoresLista.appendChild(li);
+                    }
+                }
+            });
+        }
+
+        function carregarRelatores() {
+            const relatoresSelecionadosDivs = document.querySelectorAll('#relatores-selecionados div[data-id]');
+            for (const div of relatoresSelecionadosDivs) {
+                const relatorId = div.getAttribute('data-id');
+                relatoresSelecionadosSet.add(relatorId);
+            }
+        }
+
+        function carregarAvaliadores() {
+            const avaliadoresSelecionadosDivs = document.querySelectorAll('#avaliadores-selecionados div[data-id]');
+            for (const div of avaliadoresSelecionadosDivs) {
+                const avaliadorId = div.getAttribute('data-id');
+                avaliadoresSelecionadosSet.add(avaliadorId);
+            }
+        }
+
+        function adicionarAvaliador(avaliador) {
+            if (!isAvaliadorPresent(avaliador.id)) {
+                const div = document.createElement('div');
+                div.setAttribute('data-id', avaliador.id);
+
+                const span = document.createElement('span');
+                span.textContent = avaliador.nome;
+                div.appendChild(span);
+
+                const button = document.createElement('button');
+                button.textContent = 'Retirar usuário';
+                button.type = 'button';
+                button.addEventListener('click', () => {
+                    removerAvaliador(avaliador.id);
+                });
+                div.appendChild(button);
+
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'avaliadores';
+                input.value = avaliador.id;
+                div.appendChild(input);
+
+                avaliadoresSelecionados.appendChild(div);
+
+                avaliadoresSelecionadosSet.add(avaliador.id);
+            }
+        }
+
+
+
+        function buscarAvaliadores() {
+            fetch('{% url 'cursos:buscar_avaliadores' %}?q=' + encodeURIComponent(avaliadorInput.value), {
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                },
+            })
+            .then(response => response.json())
+            .then(avaliadores => {
+                avaliadoresLista.innerHTML = '';
+                for (const avaliador of avaliadores) {
+                    if (!isAvaliadorSelected(avaliador.id)) {
+                        const li = document.createElement('li');
+                        li.textContent = avaliador.nome;
+                        li.style.cursor = 'pointer';
+                        li.addEventListener('click', () => {
+                            adicionarAvaliador(avaliador);
+                            li.remove();
+                        });
+                        avaliadoresLista.appendChild(li);
+                    }
+                }
+            });
+        }
+
+        let timeoutId = null;
+        relatorInput.addEventListener('input', () => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(buscarRelatores, 500);
+        });
+
+        relatorInput.addEventListener('focus', () => {
+            relatoresContainer.style.display = '';
+            buscarRelatores();
+        });
+
+        document.body.addEventListener('click', event => {
+            if (!relatoresContainer.contains(event.target) && event.target !== relatorInput) {
+                relatoresContainer.style.display = 'none';
+            }
+        });
+
+        avaliadorInput.addEventListener('input', () => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(buscarAvaliadores, 500);
+        });
+
+        avaliadorInput.addEventListener('focus', () => {
+            avaliadoresContainer.style.display = '';
+            buscarAvaliadores();
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            carregarRelatores();
+            carregarAvaliadores();
+        });
+
+        document.body.addEventListener('click', event => {
+            if (!avaliadoresContainer.contains(event.target) && event.target !== avaliadorInput) {
+                avaliadoresContainer.style.display = 'none';
+            }
+        });
+
     </script>
 {% endblock %}
