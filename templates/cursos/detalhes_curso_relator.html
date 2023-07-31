@@ -96,7 +96,7 @@
     <p>{{ curso.informacoes_complementares }}</p>
 
     <script>
-      const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+      const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value ?? '';
 
       const muralGen = document.querySelector('#mural-gen');
       if (muralGen) {
@@ -126,6 +126,7 @@
         });
       }
 
+
       const minimizables = document.querySelectorAll('.minimizable');
       for (const minimizable of minimizables) {
         const title = minimizable.querySelector('h2, h3');
@@ -135,4 +136,6 @@
         });
       }
     </script>
+
+
 {% endblock %}

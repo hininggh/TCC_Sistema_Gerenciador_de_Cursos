@@ -36,23 +36,6 @@
         <p><a href="{% url 'cursos:editar_curso' curso.id %}">Editar Curso</a></p>
     {% endif %}
     <a href="{% url 'cursos:curso_resumo' curso.id %}">Página resumida</a></p>
-    <h2>Capa do Curso</h2>
-    {% if curso.capa %}
-        <p><a href="{{ curso.capa.url }}" target="_blank">Baixar</a></p>
-        {% if request.user == curso.gerenciador %}
-            <form action="{% url 'cursos:apagar_capa' curso.id %}" method="post" onsubmit="return confirm('Tem certeza de que deseja apagar esta capa?')">
-                {% csrf_token %}
-                <input type="submit" value="Apagar">
-            </form>
-        {% endif %}
-    {% endif %}
-    {% if request.user == curso.gerenciador %}
-    <form method="post" enctype="multipart/form-data" {% if curso.capa %}onsubmit="return confirm('Tem certeza de que deseja enviar esta capa? Isso substituirá permanentemente a capa existente.')"{% endif %}>
-        {% csrf_token %}
-        {{ form.as_p }}
-        <input type="submit" value="{% if curso.capa %}Substituir{% else %}Enviar{% endif %}">
-    </form>
-    {% endif %}
 
     <h2>Relatores</h2>
     <ul>
@@ -115,43 +98,44 @@
     <p>{{ curso.informacoes_complementares }}</p>
 
     <script>
-      const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value ?? '';
 
-      const muralGen = document.querySelector('#mural-gen');
-      if (muralGen) {
-        muralGen.addEventListener('input', () => {
-          fetch('{% url 'cursos:atualizar_mural_gen' curso.id %}', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-              'X-CSRFToken': csrftoken,
-            },
-            body: `novo_texto=${encodeURIComponent(muralGen.value)}`,
+        const muralGen = document.querySelector('#mural-gen');
+        if (muralGen) {
+          muralGen.addEventListener('input', () => {
+            fetch('{% url 'cursos:atualizar_mural_gen' curso.id %}', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrftoken,
+              },
+              body: `novo_texto=${encodeURIComponent(muralGen.value)}`,
+            });
           });
-        });
-      }
+        }
 
-      const muralEq = document.querySelector('#mural-eq');
-      if (muralEq) {
-        muralEq.addEventListener('input', () => {
-          fetch('{% url 'cursos:atualizar_mural_eq' curso.id %}', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-              'X-CSRFToken': csrftoken,
-            },
-            body: `novo_texto=${encodeURIComponent(muralEq.value)}`,
+
+        const muralEq = document.querySelector('#mural-eq');
+        if (muralEq) {
+          muralEq.addEventListener('input', () => {
+            fetch('{% url 'cursos:atualizar_mural_eq' curso.id %}', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrftoken,
+              },
+              body: `novo_texto=${encodeURIComponent(muralEq.value)}`,
+            });
           });
-        });
-      }
+        }
 
-      const minimizables = document.querySelectorAll('.minimizable');
-      for (const minimizable of minimizables) {
-        const title = minimizable.querySelector('h2, h3');
-        const content = minimizable.querySelector('.minimizable-content');
-        title.addEventListener('click', () => {
-          content.style.display = content.style.display === 'none' ? '' : 'none';
-        });
-      }
+        const minimizables = document.querySelectorAll('.minimizable');
+        for (const minimizable of minimizables) {
+          const title = minimizable.querySelector('h2, h3');
+          const content = minimizable.querySelector('.minimizable-content');
+          title.addEventListener('click', () => {
+            content.style.display = content.style.display === 'none' ? '' : 'none';
+          });
+        }
     </script>
 {% endblock %}

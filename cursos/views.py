@@ -112,20 +112,11 @@ def detalhes_curso_gen(request, curso_id):
         if dimensao not in indicadores_por_dimensao:
             indicadores_por_dimensao[dimensao] = []
         indicadores_por_dimensao[dimensao].append(indicador_man)
-    if request.method == 'POST':
-        form = CapaForm(request.POST, request.FILES)
-        if form.is_valid():
-            curso.capa = form.cleaned_data['capa']
-            curso.usuario_capa = request.user
-            curso.save()
-            return redirect('cursos:detalhes_curso_gen', curso_id=curso.id)
-    else:
-        form = CapaForm()
+
     context = {
         'curso': curso,
         'relatores': relatores,
         'indicadores_por_dimensao': indicadores_por_dimensao,
-        'form': form,
     }
     return render(request, 'cursos/detalhes_curso_gen.html', context)
 

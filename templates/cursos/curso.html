@@ -40,6 +40,12 @@
     <p>Descrição: {{ curso.descricao }}</p>
     {% if request.user == curso.gerenciador %}
         <p><a href="{% url 'cursos:editar_curso' curso.id %}">Editar Curso</a></p>
+    <h2>Relatores</h2>
+    <ul>
+        {% for relator in relatores %}
+            <li><a href="{% url 'usuarios:detalhes_usuario' relator.id %}">{{ relator.nome }}</a></li>
+        {% endfor %}
+    </ul>
     {% endif %}
 
     <h2>Indicadores</h2>
@@ -143,7 +149,7 @@
 
       const minimizables = document.querySelectorAll('.minimizable');
       for (const minimizable of minimizables) {
-        const title = minimizable.querySelector('h2, h3');
+        const title = minimizable.querySelector('h3');
         const content = minimizable.querySelector('.minimizable-content');
         title.addEventListener('click', () => {
           content.style.display = content.style.display === 'none' ? '' : 'none';
