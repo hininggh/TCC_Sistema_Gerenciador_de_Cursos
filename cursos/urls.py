@@ -8,8 +8,9 @@ app_name = 'cursos'
 
 urlpatterns = [
     path('buscar_relatores/', buscar_relatores, name='buscar_relatores'),
-    path('criar_curso/', criar_curso, name='criar_curso'),
-    path('editar_curso/<int:curso_id>/', criar_curso, name='editar_curso'),
+    path('cursos/buscar_avaliadores/', views.buscar_avaliadores, name='buscar_avaliadores'),
+    path('criar_curso/', views.criar_curso, name='criar_curso'),
+    path('editar_curso/<int:curso_id>/', views.criar_curso, name='editar_curso'),
     path('excluir_curso/<int:curso_id>/', excluir_curso, name='excluir_curso'),
     path('detalhes_curso_gen/<int:curso_id>/', detalhes_curso_gen, name='detalhes_curso_gen'),
     path('detalhes_curso_relator/<int:curso_id>/', detalhes_curso_relator, name='detalhes_curso_relator'),
@@ -18,6 +19,5 @@ urlpatterns = [
     path('listar_cursos/', listar_cursos, name='listar_cursos'),
     path('apagar_capa/<int:curso_id>/', views.apagar_capa, name='apagar_capa'),
     path('cursos/<int:curso_id>/resumo/', views.curso_resumo, name='curso_resumo'),
-    path('cursos/buscar_avaliadores/', views.buscar_avaliadores, name='buscar_avaliadores'),
     path('detalhes_curso_ava/<int:curso_id>/', views.detalhes_curso_ava, name='detalhes_curso_ava'),
 ]

@@ -156,8 +156,10 @@
             }
         }
 
+
+
         function adicionarRelator(relator) {
-            if (!isRelatorPresent(relator.id)) {
+            if (!isRelatorSelected(relator.id)) {
                 const div = document.createElement('div');
                 div.setAttribute('data-id', relator.id);
 
@@ -225,8 +227,9 @@
             }
         }
 
+
         function adicionarAvaliador(avaliador) {
-            if (!isAvaliadorPresent(avaliador.id)) {
+            if (!isAvaliadorSelected(avaliador.id)) {
                 const div = document.createElement('div');
                 div.setAttribute('data-id', avaliador.id);
 
@@ -291,12 +294,6 @@
             buscarRelatores();
         });
 
-        document.body.addEventListener('click', event => {
-            if (!relatoresContainer.contains(event.target) && event.target !== relatorInput) {
-                relatoresContainer.style.display = 'none';
-            }
-        });
-
         avaliadorInput.addEventListener('input', () => {
             clearTimeout(timeoutId);
             timeoutId = setTimeout(buscarAvaliadores, 500);
@@ -312,11 +309,14 @@
             carregarAvaliadores();
         });
 
+        // Combinar os eventos de clique em document.body
         document.body.addEventListener('click', event => {
+            if (!relatoresContainer.contains(event.target) && event.target !== relatorInput) {
+                relatoresContainer.style.display = 'none';
+            }
             if (!avaliadoresContainer.contains(event.target) && event.target !== avaliadorInput) {
                 avaliadoresContainer.style.display = 'none';
             }
         });
-
     </script>
 {% endblock %}

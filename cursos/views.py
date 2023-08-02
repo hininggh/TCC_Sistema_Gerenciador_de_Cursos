@@ -5,38 +5,33 @@ from .forms import CursoForm
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from indicadores.models import IndicadorMan, IndicadorInfo
+import logging
 from .forms import CapaForm
 
 
 def criar_curso(request, curso_id=None):
     novo_curso = not bool(curso_id)
     curso = get_object_or_404(Curso, pk=curso_id) if curso_id else Curso(gerenciador=request.user)
-
     if request.method == 'POST':
         form = CursoForm(request.POST, request.FILES, instance=curso)
         if form.is_valid():
             curso = form.save()
-
             # Remove relatores que foram retirados
             relatores_ids = request.POST.getlist('relatores')
             relatores = Usuario.objects.filter(id__in=relatores_ids)
             curso.membros.set(relatores)
-
             # Remove avaliadores que foram retirados
             avaliadores_ids = request.POST.getlist('avaliadores')
             avaliadores = Usuario.objects.filter(id__in=avaliadores_ids)
             curso.avaliadores.set(avaliadores)
-
             if novo_curso:
                 # Cria os objetos IndicadorMan para cada IndicadorInfo
                 indicadores_info = IndicadorInfo.objects.all()
                 for indicador_info in indicadores_info:
                     IndicadorMan.objects.create(curso=curso, indicador_info=indicador_info)
-
             return redirect('cursos:detalhes_curso_gen', curso_id=curso.id)
     else:
         form = CursoForm(instance=curso)
-
     return render(request, 'cursos/criar_curso.html', {'form': form, 'curso': curso})
 
 
@@ -47,8 +42,6 @@ def buscar_avaliadores(request):
         avaliadores = avaliadores.filter(nome__icontains=q)
     data = [{'id': avaliador.id, 'nome': avaliador.nome} for avaliador in avaliadores]
     return JsonResponse(data, safe=False)
-
-
 def buscar_relatores(request):
     q = request.GET.get('q', '')
     relatores = Usuario.objects.filter(tipo_usuario=Usuario.RELATOR)
@@ -56,7 +49,6 @@ def buscar_relatores(request):
         relatores = relatores.filter(nome__icontains=q)
     data = [{'id': relator.id, 'nome': relator.nome} for relator in relatores]
     return JsonResponse(data, safe=False)
-
 
 
 def excluir_curso(request, curso_id):
